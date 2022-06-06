@@ -1,0 +1,12 @@
+import SwiftUI
+
+@main
+struct MedifyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            
+            ContentView()
+            
+        }
+    }
+}
