@@ -1,0 +1,3316 @@
+import SwiftUI
+
+struct ContentView: View {
+    
+    @State private var medified = "No scanned data"
+    @State public var emcURL = "https://www.medicines.org.uk/emc/product/-1/smpc"
+    
+    @State private var showScannerSheet = false
+    @State private var texts:[ScanData] = []
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                Spacer()
+                if texts.count > 0 {
+                    List {
+                        ForEach(texts) {text in NavigationLink(destination: ScrollView{Text(text.content)}, label: { Text(text.content).lineLimit(1)})}
+                    }
+                
+                }
+                else {
+                    Text("Log is Empty").font(.title)
+                }
+                Spacer()
+                
+                if emcURL != "https://www.medicines.org.uk/emc/product/-1/smpc" {
+                    Link(destination: URL(string: emcURL)!, label: { Text("Latest scanned pill: " + medified)})
+                }
+                else {
+                    Text("Latest scanned pill: " + medified)
+                }
+            }
+            .navigationTitle("Medify Log")
+            .navigationBarItems(trailing: Button(action: { self.showScannerSheet = true }, label: { Image(systemName: "camera.viewfinder").font(.title)}).sheet(isPresented: $showScannerSheet, content: { makeScannerView() }))
+        }
+    }
+    
+    private func makeScannerView() -> ScannerView {
+        ScannerView(completion: {
+            textPerPage in
+            if let outputText = textPerPage?.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines){
+                let newScanData = ScanData(content: outputText)
+                self.texts.append(newScanData)
+                
+                var latestArray = [String]()
+                var latestScan: String
+                
+                latestScan = newScanData.content
+                
+                latestScan = latestScan.replacingOccurrences(of: "\n", with: " ")
+                
+                latestScan = latestScan.replacingOccurrences(of: "®", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: "™", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: "&", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: "!", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: "?", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: ":", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: ")", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: "(", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: ",", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: "»", with: "")
+                
+                latestScan = latestScan.replacingOccurrences(of: "\"", with: "")
+                
+                latestScan = latestScan.lowercased()
+                
+                latestArray = latestScan.components(separatedBy: " ")
+
+                medified = medify(someArray: latestArray)
+                emcURL = getProductURL(someArray: latestArray)
+            }
+            self.showScannerSheet = false
+        })
+    }
+}
+
+func medify(someArray: Array<String>) -> String {
+    if ["4head", "levomenthol"].allSatisfy(someArray.contains) {
+        return "4head Cutaneous Stick"
+    }
+    else if ["asda+", "max", "strength", "cold", "flu", "day", "night"].allSatisfy(someArray.contains){
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["asda", "heartburn", "and", "indigestion", "liquid"].allSatisfy(someArray.contains){
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["acidex", "oral", "suspension", "aniseed", "flavour"].allSatisfy(someArray.contains){
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["acnecide", "face", "5%", "w/w", "gel"].allSatisfy(someArray.contains){
+        return "Acnecide Face 5% w/w Gel"
+    }
+    else if ["acnecide", "face", "wash", "5%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "Acnecide Face Wash 5% w/w Gel"
+    }
+    else if ["acriflex", "0.25%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "Acriflex 0.25% w/w Cream"
+    }
+    else if ["adios", "max"].allSatisfy(someArray.contains) {
+        return "Adios Max Tablets"
+    }
+    else if ["allacan", "10mg", "film-coated", "tablets", "hay", "fever", "and", "allergy", "relief"].allSatisfy(someArray.contains) {
+        return "allacan 10mg film-coated tablets"
+    }
+    else if ["allacon", "10mg", "film-coated", "tablets", "hay", "fever", "and", "allergy", "relief"].allSatisfy(someArray.contains) {
+        return "allacan 10mg film-coated tablets"
+    }
+    else if ["allercrom", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Allercrom 2% w/v Eye Drops"
+    }
+    else if ["allevia", "120mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Allevia 120mg tablets"
+    }
+    else if ["anadin", "extra", "soluble"].allSatisfy(someArray.contains) {
+        return "Anadin Extra Soluble Tablets"
+    }
+    else if ["anadin", "extra"].allSatisfy(someArray.contains) {
+        return "Anadin Extra Tablets"
+    }
+    else if ["anadin", "ibuprofen"].allSatisfy(someArray.contains) {
+        return "Anadin Ibuprofen 200 mg Tablets"
+    }
+    else if ["anadin", "joint", "pain"].allSatisfy(someArray.contains) {
+        return "Anadin Joint Pain 200mg Tablets"
+    }
+    else if ["anadin", "original"].allSatisfy(someArray.contains) {
+        return "Anadin Original"
+    }
+    else if ["anadin", "paracetamol"].allSatisfy(someArray.contains) {
+        return "Anadin Paracetamol Tablets"
+    }
+    else if ["anadin", "ultra"].allSatisfy(someArray.contains) {
+        return "Anadin Ultra/Anadin LiquiFast 200mg Capsules"
+    }
+    else if ["anadin", "liquifast"].allSatisfy(someArray.contains) {
+        return "Anadin Ultra/Anadin LiquiFast 200mg Capsules"
+    }
+    else if ["anadin", "period", "pain", "relief"].allSatisfy(someArray.contains) {
+        return "Anadin Ultra/Anadin LiquiFast 200mg Capsules"
+    }
+    else if ["anbesol", "adult", "strength", "gel"].allSatisfy(someArray.contains) {
+        return "Anbesol Adult Strength Gel"
+    }
+    else if ["anodesyn", "ointment"].allSatisfy(someArray.contains) {
+        return "Anodesyn Ointment"
+    }
+    else if ["anodesyn", "suppositories"].allSatisfy(someArray.contains) {
+        return "Anodesyn Suppositories"
+    }
+    else if ["anthisan", "bite", "and", "sting", "cream"].allSatisfy(someArray.contains) {
+        return "Anthisan Bite and Sting 2% w/w Cream"
+    }
+    else if ["anusol", "cream"].allSatisfy(someArray.contains) {
+        return "Anusol Cream"
+    }
+    else if ["anusol", "soothing", "relief", "ointment"].allSatisfy(someArray.contains) {
+        return "Anusol Soothing Relief Ointment"
+    }
+    else if ["anusol", "soothing", "relief", "suppositories"].allSatisfy(someArray.contains) {
+        return "Anusol Soothing Relief Suppositories"
+    }
+    else if ["anusol", "ointment"].allSatisfy(someArray.contains) {
+        return "Anusol Ointment"
+    }
+    else if ["anusol", "suppositories"].allSatisfy(someArray.contains) {
+        return "Anusol Suppositories"
+    }
+    else if ["aqueous", "calamine", "cream"].allSatisfy(someArray.contains) {
+        return "Aqueous Calamine Cream BP"
+    }
+    else if ["aqueous", "cream"].allSatisfy(someArray.contains) {
+        return "Aqueous Cream BP"
+    }
+    else if ["ascorbic", "acid", "tablets"].allSatisfy(someArray.contains) {
+        return "Ascorbic Acid 500mg Tablets"
+    }
+    else if ["ashton", "parsons", "teething", "powders"].allSatisfy(someArray.contains) {
+        return "Ashton and Parsons Teething Powders"
+    }
+    else if ["aspire", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["balneum", "plus", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "Balneum Plus Bath Oil"
+    }
+    else if ["balneum", "plus", "cream"].allSatisfy(someArray.contains) {
+        return "Balneum Plus Cream"
+    }
+    else if ["balneum", "bath", "oil"].allSatisfy(someArray.contains) {
+        return "Balneum Bath Oil"
+    }
+    else if ["bazuka", "extra", "strength", "treatment", "26%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "Bazuka Extra Strength Treatment Gel"
+    }
+    else if ["bazuka", "treatment", "gel"].allSatisfy(someArray.contains) {
+        return "Bazuka Treatment Gel"
+    }
+    else if ["beechams", "max", "strength", "all", "in", "one", "capsules"].allSatisfy(someArray.contains) {
+        return "Beechams Max Strength All in One Capsules, hard"
+    }
+    else if ["beechams", "flu", "plus", "hot", "lemon"].allSatisfy(someArray.contains) {
+        return "Beechams Flu Plus Hot Lemon"
+    }
+    else if ["beechams", "flu", "plus", "caplets"].allSatisfy(someArray.contains) {
+        return "Beechams Flu-Plus Caplets GSL"
+    }
+    else if ["beechams", "all", "in", "one", "liquid"].allSatisfy(someArray.contains) {
+        return "Beechams All-in-One Oral solution"
+    }
+    else if ["beechams", "all", "in", "one", "tablets"].allSatisfy(someArray.contains) {
+        return "Beechams All-In-One Tablets"
+    }
+    else if ["beechams", "breathe", "clear", "hot", "honey", "lemon", "menthol", "flavour", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Beechams Breathe Clear Hot Honey & Lemon Menthol Flavour Powder for Oral Solution"
+    }
+    else if ["beechams", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Beechams Cold and Flu Capsules"
+    }
+    else if ["beechams", "cold", "flu", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "Beechams Cold and Flu Hot Blackcurrant"
+    }
+    else if ["beechams", "cold", "flu", "lemon", "honey"].allSatisfy(someArray.contains) {
+        return "Beechams Cold and Flu Hot Lemon and Honey"
+    }
+    else if ["beechams", "cold", "flu", "lemon"].allSatisfy(someArray.contains) {
+        return "Beechams Cold and Flu Hot Lemon"
+    }
+    else if ["beechams", "powders"].allSatisfy(someArray.contains) {
+        return "Beechams Powders GSL"
+    }
+    else if ["beechams", "powders"].allSatisfy(someArray.contains) {
+        return "Beechams Powders GSL"
+    }
+    else if ["benacort", "hayfever", "relief", "for", "adults", "64", "micrograms"].allSatisfy(someArray.contains) {
+        return "Benacort Hayfever Relief for Adults 64 micrograms, nasal spray"
+    }
+    else if ["benadryl", "allergy", "children’s", "1mg/ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Benadryl Allergy Children's 6+ 1mg/ml Oral Solution"
+    }
+    else if ["benadryl", "allergy", "liquid", "release", "10", "mg", "capsules"].allSatisfy(someArray.contains) {
+        return "Benadryl Allergy Liquid Release 10 mg Capsules"
+    }
+    else if ["benadryl", "one", "a", "day", "relief"].allSatisfy(someArray.contains) {
+        return "Benadryl Allergy One A Day 10mg Tablets"
+    }
+    else if ["benadryl", "allergy", "relief"].allSatisfy(someArray.contains) {
+        return "Benadryl Allergy Relief (GSL)"
+    }
+    else if ["benylin", "chesty", "cough", "cold", "tablets"].allSatisfy(someArray.contains) {
+        return "Benylin Chesty Cough & Cold Tablets"
+    }
+    else if ["benylin", "chesty", "coughs", "non-drowsy"].allSatisfy(someArray.contains) {
+        return "Benylin Chesty Coughs (Non-Drowsy)"
+    }
+    else if ["benylin", "children's", "dry", "cough", "sore", "throat", "syrup"].allSatisfy(someArray.contains) {
+        return "Benylin Children's Dry Cough & Sore Throat Syrup"
+    }
+    else if ["benylin", "dry", "coughs", "non-drowsy", "blackcurrant", "flavour", "syrup"].allSatisfy(someArray.contains) {
+        return "Benylin Children's Dry Cough & Sore Throat Syrup"
+    }
+    else if ["benylin", "cold", "flu", "day", "night", "max", "strength", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["benylin", "cold", "flu", "max", "strength", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["benylin", "dry", "tickly", "cough", "syrup"].allSatisfy(someArray.contains) {
+        return "Benylin Dry & Tickly Cough Syrup"
+    }
+    else if ["benylin", "infant’s", "cough", "syrup"].allSatisfy(someArray.contains) {
+        return "Benylin Infant's Cough Syrup"
+    }
+    else if ["benylin", "mucus", "cough", "cold", "all", "in", "one", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Benylin Mucus Cough & Cold All in One Relief Tablets"
+    }
+    else if ["benylin", "mucus", "cough", "max", "honey", "lemon", "flavour"].allSatisfy(someArray.contains) {
+        return "Benylin Mucus Cough Max Honey & Lemon Flavour 100 mg/5 ml Syrup"
+    }
+    else if ["benylin", "mucus", "cough", "max", "menthol", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Benylin Mucus Cough Max Menthol flavour 100 mg/5 ml Oral Solution"
+    }
+    else if ["benylin", "mucus", "cough"].allSatisfy(someArray.contains) {
+        return "Benylin Mucus Cough"
+    }
+    else if ["bisalax", "bisacodyl", "enteric", "coated", "tablets"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["bisodol", "indigestion", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Bisodol Original Indigestion Relief Tablets"
+    }
+    else if ["blistex", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Blistex Cold Sore Cream (GSL)"
+    }
+    else if ["blistex", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "BLISTEX RELIEF CREAM"
+    }
+    else if ["brown", "burk", "allergy", "relief", "8mg", "capsules", "hard"].allSatisfy(someArray.contains) {
+        return "Acrivastin Allergy Relief capsules"
+    }
+    else if ["brown", "burk", "once-a-day", "hayfever", "allergy", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Brown & Burk Once-A-Day Hayfever & Allergy 10mg Tablets"
+    }
+    else if ["bonjela", "cool", "mint", "gel"].allSatisfy(someArray.contains) {
+        return "Bonjela Cool Mint Gel"
+    }
+    else if ["bonjela", "junior", "gel"].allSatisfy(someArray.contains) {
+        return "Bonjela Junior gel"
+    }
+    else if ["bonjela"].allSatisfy(someArray.contains) {
+        return "Bonjela"
+    }
+    else if ["boots", "antiseptic", "cream"].allSatisfy(someArray.contains) {
+        return "Boots Antiseptic Cream"
+    }
+    else if ["boots", "antiseptic", "wound", "wash"].allSatisfy(someArray.contains) {
+        return "Boots Antiseptic Wound Wash"
+    }
+    else if ["boots", "aqueous", "cream", "100g"].allSatisfy(someArray.contains) {
+        return "Boots Aqueous Cream B.P. 100g"
+    }
+    else if ["boots", "aqueous", "cream", "500g"].allSatisfy(someArray.contains) {
+        return "Boots Aqueous Cream B.P. 500g"
+    }
+    else if ["boots", "aspirin", "300", "tablets"].allSatisfy(someArray.contains) {
+        return "Boots Aspirin 300mg Tablets"
+    }
+    else if ["boots", "antiviral", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir 5% w/w Cream, Boots Antiviral Cold Sore Cream"
+    }
+    else if ["boots", "athlete's", "foot", "cream"].allSatisfy(someArray.contains) {
+        return "Boots Athlete's Foot Cream"
+    }
+    else if ["boots", "avert", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Boots Avert Cold Sore Cream"
+    }
+    else if ["boots", "bite", "sting", "relief", "antihistamine", "cream"].allSatisfy(someArray.contains) {
+        return "Boots Bite and Sting Relief 2 Years Plus Antihistamine Cream (GSL)"
+    }
+    else if ["boots", "bite", "sting", "relief", "hydrocortisone", "cream"].allSatisfy(someArray.contains) {
+        return "Boots Bite and Sting Relief Hydrocortisone Cream"
+    }
+    else if ["boots", "blocked", "nose", "relief", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Boots Blocked Nose Relief 0.05% w/v Nasal Spray"
+    }
+    else if ["boots", "blocked", "nose", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "Boots Blocked Nose Relief 12mg Capsules"
+    }
+    else if ["boots", "calamine", "glycerin", "cream"].allSatisfy(someArray.contains) {
+        return "Calamine and Glycerin Cream"
+    }
+    else if ["boots", "calamine", "lotion"].allSatisfy(someArray.contains) {
+        return "Boots Calamine Lotion BP"
+    }
+    else if ["boots", "chesty", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Boots Chesty Cough Relief 100 mg/5ml Oral Solution"
+    }
+    else if ["boots", "mucus", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Boots Chesty Cough Relief 100 mg/5ml Oral Solution"
+    }
+    else if ["boots", "chilblain", "cream"].allSatisfy(someArray.contains) {
+        return "Boots Chilblain Cream"
+    }
+    else if ["boots", "easy", "breathing", "pastilles"].allSatisfy(someArray.contains) {
+        return "Boots Easy Breathing Pastilles"
+    }
+    else if ["boots", "antiseptic", "liquid"].allSatisfy(someArray.contains) {
+        return "Boots First Aid Antiseptic Liquid"
+    }
+    else if ["boots", "flu-max", "all-in-one", "chesty", "cough", "cold", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Boots Flu-Max All-In-One Chesty Cough & Cold Powder for Oral Solution"
+    }
+    else if ["boots", "fungal", "nail"].allSatisfy(someArray.contains) {
+        return "Amorolfine 5% w/v Medicated Nail Lacquer - GSL"
+    }
+    else if ["boots", "constipation", "relief", "suppositories", "glycerol"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["boots", "cold", "flu", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Boots Cold and Flu Relief Tablets"
+    }
+    else if ["boots", "constipation", "relief", "5mg", "bisacodyl"].allSatisfy(someArray.contains) {
+        return "Boots Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["boots", "cough", "syrup", "3", "months", "plus"].allSatisfy(someArray.contains) {
+        return "Boots Cough Syrup 3 Months Plus"
+    }
+    else if ["boots", "diarrhoea", "relief", "2", "capsules"].allSatisfy(someArray.contains) {
+        return "Boots Diarrhoea Relief 2 mg Capsules (P and GSL)"
+    }
+    else if ["boots", "dry", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Boots Dry Cough Relief Oral Solution"
+    }
+    else if ["boots", "tickly", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Boots Dry Cough Relief Oral Solution"
+    }
+    else if ["boots", "dual", "action", "athlete's", "foot", "spray"].allSatisfy(someArray.contains) {
+        return "Boots Dual Action Athlete's Foot Spray"
+    }
+    else if ["boots", "gripe", "mixture", "1", "month", "plus"].allSatisfy(someArray.contains) {
+        return "Boots Gripe Mixture 1 Month Plus"
+    }
+    else if ["boots", "heartburn", "relief"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["boots", "haemorrhoid", "relief", "ointment"].allSatisfy(someArray.contains) {
+        return "Boots Haemorrhoid Relief Ointment"
+    }
+    else if ["boots", "acid", "reflux", "20mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "Pyrocalm Control 20mg Gastro-Resistant Tablets"
+    }
+    else if ["boots", "hayfever", "allergy", "relief", "syrup"].allSatisfy(someArray.contains) {
+        return "Boots Hayfever & Allergy Relief Syrup"
+    }
+    else if ["boots", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["boots", "ibuprofen", "3", "months", "oral", "suspension", "strawberry"].allSatisfy(someArray.contains) {
+        return "Boots Ibuprofen 3 Months Plus 100 mg/5 ml Oral Suspension Strawberry Flavour (GSL)"
+    }
+    else if ["boots", "ibuprofen", "200mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Boots Ibuprofen Caplets 200mg (P & GSL)"
+    }
+    else if ["boots", "lip", "and", "cold", "sore", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "Boots Lip and Cold Sore Relief Cream"
+    }
+    else if ["boots", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["boots", "max", "strength", "ibuprofen", "10%", "gel"].allSatisfy(someArray.contains) {
+        return "Boots Max Strength Ibuprofen 10% Gel"
+    }
+    else if ["boots", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["boots", "max", "strength", "senna", "adult", "laxative", "15", "mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Boots Max Strength Senna Adult Laxative 15 mg Tablets"
+    }
+    else if ["boots", "maximum", "strength", "cold", "flu", "relief", "lemon"].allSatisfy(someArray.contains) {
+        return "Boots Maximum Strength Cold & Flu Relief Direct Dose Lemon"
+    }
+    else if ["boots", "mouth", "ulcer", "gel"].allSatisfy(someArray.contains) {
+        return "Boots Mouth Ulcer Gel"
+    }
+    else if ["nicassist", "2", "mg", "microtab"].allSatisfy(someArray.contains) {
+        return "Nicorette Microtab or Boots NicAssist 2 mg microtab"
+    }
+    else if ["nicassist", "10", "mg/ml", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Nicorette Nasal Spray"
+    }
+    else if ["nicassist", "1"].allSatisfy(someArray.contains) {
+        return "Boots NicAssist 1 mg compressed lozenge"
+    }
+    else if ["nicassist", "2"].allSatisfy(someArray.contains) {
+        return "Boots NicAssist 2 mg compressed lozenge"
+    }
+    else if ["boots", "oral", "antiseptic"].allSatisfy(someArray.contains) {
+        return "Boots Oral Antiseptic"
+    }
+    else if ["boots", "pain", "relief", "heat", "spray"].allSatisfy(someArray.contains) {
+        return "Boots Pain Relief Heat Spray"
+    }
+    else if ["boots", "paracetamol", "120mg/5ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Boots Paracetamol 120 mg/5 ml Oral Suspension (GSL)"
+    }
+    else if ["boots", "paracetamol", "6", "years", "plus", "250mg/5ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Boots Paracetamol 6 Years Plus 250mg/5ml Oral Suspension"
+    }
+    else if ["boots", "rehydration", "treatment"].allSatisfy(someArray.contains) {
+        return "Boots Rehydration Treatment"
+    }
+    else if ["boots", "senna", "adult", "laxative", "7.5", "mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Boots Senna Adult Laxative 7.5 mg Tablets"
+    }
+    else if ["boots", "tickly", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Boots Tickly Cough Relief Oral Solution"
+    }
+    else if ["boots", "distilled", "witch", "hazel"].allSatisfy(someArray.contains) {
+        return "Distilled Witch Hazel BPC (Boots Company plc)"
+    }
+    else if ["boots", "vapour", "chest", "rub"].allSatisfy(someArray.contains) {
+        return "Boots Vapour Chest Rub"
+    }
+    else if ["boots", "haemorrhoid", "relief", "suppositories"].allSatisfy(someArray.contains) {
+        return "Anodesyn Suppositories"
+    }
+    else if ["boots", "wind", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Boots Wind Relief Tabletss"
+    }
+    else if ["bronchial", "cough", "mixture"].allSatisfy(someArray.contains) {
+        return "Bronchial Cough Mixture"
+    }
+    else if ["buscomint", "peppermint", "oil", "0.2ml", "gastro-resistant", "capsule"].allSatisfy(someArray.contains) {
+        return "Buscomint Peppermint oil 0.2ml gastro-resistant capsule, soft"
+    }
+    else if ["buscopan", "ibs", "relief"].allSatisfy(someArray.contains) {
+        return "Buscopan IBS Relief"
+    }
+    else if ["calamine", "lotion", "bp"].allSatisfy(someArray.contains) {
+        return "Calamine Lotion BP"
+    }
+    else if ["calcough", "children's", "syrup"].allSatisfy(someArray.contains) {
+        return "CalCough Children's Syrup"
+    }
+    else if ["calcough", "infant", "syrup"].allSatisfy(someArray.contains) {
+        return "CalCough Infant Syrup"
+    }
+    else if ["calpol", "infant", "sugar", "free", "colour", "free", "120", "mg/5", "ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "CALPOL Infant Sugar Free Colour Free 120 mg/5 ml Oral Suspension"
+    }
+    else if ["calpol", "six", "plus", "fastmelts"].allSatisfy(someArray.contains) {
+        return "Calpol Six Plus Fast Melts (Packsize 12)"
+    }
+    else if ["calpol", "six", "plus", "sugar", "free", "suspension"].allSatisfy(someArray.contains) {
+        return "Calpol Six Plus Sugar Free Suspension (Sachets/GSL)"
+    }
+    else if ["calpol", "sugar", "free", "infant", "suspension", "sachets"].allSatisfy(someArray.contains) {
+        return "CALPOL Sugar Free Infant Suspension Sachets"
+    }
+    else if ["calpol", "infant", "suspension"].allSatisfy(someArray.contains) {
+        return "CALPOL Infant Suspension"
+    }
+    else if ["calprofen", "100mg/5ml", "oral", "suspension", "ibuprofen"].allSatisfy(someArray.contains) {
+        return "Calprofen 100mg/5ml Oral Suspension Ibuprofen"
+    }
+    else if ["canesten", "thrush", "combi", "soft", "gel", "pessary", "external", "cream", "500mg", "/", "2%", "w/w", "vaginal", "capsule",  "cream"].allSatisfy(someArray.contains) {
+        return "Canesten Thrush Combi Soft Gel Pessary & External Cream 500mg / 2% w/w vaginal capsule & cream"
+    }
+    else if ["canesten", "bifonazole", "once", "daily", "1%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "Canesten Bifonazole Once Daily 1% w/w Cream"
+    }
+    else if ["canesten", "dual", "action", "1%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "Canesten Dual Action 1% w/w Cream"
+    }
+    else if ["canesten", "thrush", "combi", "internal", "external", "creams", "10%", "w/w", "/", "2%", "w/w", "vaginal", "cream"].allSatisfy(someArray.contains) {
+        return "Canesten Thrush Combi Internal & External Creams 10% w/w / 2% w/w vaginal cream & cream"
+    }
+    else if ["canesten", "thrush", "combi", "pessary", "external", "cream", "500mg", "/", "2%", "w/w", "pessary", " cream"].allSatisfy(someArray.contains) {
+        return "Canesten Thrush Combi Pessary & External Cream 500mg / 2% w/w pessary & cream"
+    }
+    else if ["care", "ibuprofen", "5%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "Radian B Ibuprofen 5% w/w Gel"
+    }
+    else if ["care", "agnus", "castus", "pms", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "Care Agnus Castus PMS Relief Capsules"
+    }
+    else if ["care", "antiseptic", "first", "aid", "cream"].allSatisfy(someArray.contains) {
+        return "Care Antiseptic First Aid Cream"
+    }
+    else if ["care", "chlorhexidine", "digluconate", "0.2%", "w/v", "antiseptic", "mouthwash", "peppermint", "flavour"].allSatisfy(someArray.contains) {
+        return "Care Chlorhexidine Digluconate 0.2% w/v Antiseptic Mouthwash"
+    }
+    else if ["care", "chlorhexidine", "digluconate", "0.2%", "w.v", "antiseptic", "mouthwash", "aniseed", "flavour"].allSatisfy(someArray.contains) {
+        return "Care Chlorhexidine Digluconate 0.2%w.v Antiseptic Mouthwash Aniseed Flavour"
+    }
+    else if ["care", "cold", "flu", "relief", "200mg/5mg", "film", "coated", "tablets"].allSatisfy(someArray.contains) {
+        return "Care Cold & Flu Relief 200mg/5mg Film Coated Tablets"
+    }
+    else if ["care", "echinacea", "cold", "flu", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Care Echinacea Cold & Flu Relief Tablets"
+    }
+    else if ["care", "ibuprofen", "for", "children", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Care Ibuprofen for Children Oral Suspension"
+    }
+    else if ["care", "infant", "paracetamol", "120mg/5ml", "suspension"].allSatisfy(someArray.contains) {
+        return "Care Infant Paracetamol 120mg/5ml Suspension"
+    }
+    else if ["care", "st", "john's", "wort", "low", "mood", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Care St John's Wort Low Mood Relief Tablets"
+    }
+    else if ["care", "tea", "tree", "oil", "100%"].allSatisfy(someArray.contains) {
+        return "Care Tea Tree Oil 100%"
+    }
+    else if ["care", "haemorrhoid", "relief", "ointment"].allSatisfy(someArray.contains) {
+        return "Anodesyn Ointment"
+    }
+    else if ["careway", "cold", "sore", "5%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["careway", "allergy", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["simple", "linctus", "paediatric", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "Simple Linctus Paediatric Sugar Free"
+    }
+    else if ["cetirizine", "hydrochloride", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Cetirizine Hydrochloride 10mg Tablets"
+    }
+    else if ["cetomacrogol", "cream", "bp", "1988", "formula", "a"].allSatisfy(someArray.contains) {
+        return "Cetomacrogol Cream BP 1988 Formula A"
+    }
+    else if ["cetraben", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "Cetraben Emollient Bath Additive / Cetraben Bath Additive"
+    }
+    else if ["chloraprep", "2%", "w/v", "/", "70%", "v/v", "cutaneous", "solution"].allSatisfy(someArray.contains) {
+        return "ChloraPrep"
+    }
+    else if ["clarityn", "allergy", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Clarityn Allergy 10mg Tablets (GSL)"
+    }
+    else if ["clove", "oil"].allSatisfy(someArray.contains) {
+        return "Clove Oil BP"
+    }
+    else if ["cocois"].allSatisfy(someArray.contains) {
+        return "Cocois (Coconut Oil Compound Ointment)"
+    }
+    else if ["colpermin", "ibs", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "Colpermin IBS Relief Capsules"
+    }
+    else if ["corsodyl", "0.2%", "mouthwash"].allSatisfy(someArray.contains) {
+        return "Corsodyl 0.2% Mouthwash"
+    }
+    else if ["corsodyl", "spray"].allSatisfy(someArray.contains) {
+        return "Corsodyl Spray"
+    }
+    else if ["covonia", "catarrh", "relief", "formula"].allSatisfy(someArray.contains) {
+        return "Covonia Catarrh Relief Formula"
+    }
+    else if ["covonia", "chesty", "cough", "mixture", "mentholated"].allSatisfy(someArray.contains) {
+        return "Covonia Chesty Cough Mixture Mentholated"
+    }
+    else if ["covonia", "mucus", "cough", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Covonia Chesty Cough Mixture Mentholated"
+    }
+    else if ["covonia", "chesty", "cough", "sugar", "free", "syrup"].allSatisfy(someArray.contains) {
+        return "Covonia Chesty Cough Sugar Free Syrup"
+    }
+    else if ["covonia", "all-in-one", "chesty", "cough", "cold", "flu", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Covonia ALL-IN-ONE Chesty Cough, Cold & Flu Relief Oral Solution"
+    }
+    else if ["covonia", "dry", "tickly", "cough", "linctus"].allSatisfy(someArray.contains) {
+        return "Covonia Dry & Tickly Cough Linctus"
+    }
+    else if ["covonia", "vapour", "drops"].allSatisfy(someArray.contains) {
+        return "Covonia Vapour Drops"
+    }
+    else if ["crampex", "tablets"].allSatisfy(someArray.contains) {
+        return "Crampex Tablets"
+    }
+    else if ["curanail", "5%", "w/v", "medicated", "nail", "lacquer"].allSatisfy(someArray.contains) {
+        return "Curanail 5% w/v Medicated Nail Lacquer"
+    }
+    else if ["cymex"].allSatisfy(someArray.contains) {
+        return "Cymex Cream"
+    }
+    else if ["daktarin", "aktiv", "cream"].allSatisfy(someArray.contains) {
+        return "Daktarin Aktiv Cream"
+    }
+    else if ["daktarin", "aktiv", "spray", "powder"].allSatisfy(someArray.contains) {
+        return "Daktarin Aktiv Spray Powder"
+    }
+    else if ["daktarin", "intensiv", "cream"].allSatisfy(someArray.contains) {
+        return "Daktarin Intensiv Cream"
+    }
+    else if ["dandrazol", "anti-dandruff", "shampoo"].allSatisfy(someArray.contains) {
+        return "Dandrazol Anti-Dandruff Shampoo"
+    }
+    else if ["dentinox", "cradle", "cap", "treatment", "shampoo"].allSatisfy(someArray.contains) {
+        return "Dentinox Cradle Cap Treatment Shampoo"
+    }
+    else if ["dentinox", "infant", "colic", "drops"].allSatisfy(someArray.contains) {
+        return "Dentinox Infant Colic Drops"
+    }
+    else if ["dermalo", "bath", "emollient"].allSatisfy(someArray.contains) {
+        return "Dermalo Bath Emollient"
+    }
+    else if ["dettol", "antiseptic", "wash"].allSatisfy(someArray.contains) {
+        return "Dettol Antiseptic Wash"
+    }
+    else if ["dettol", "wash"].allSatisfy(someArray.contains) {
+        return "Dettol Antiseptic Wash"
+    }
+    else if ["dettol", "liquid"].allSatisfy(someArray.contains) {
+        return "Dettol Liquid"
+    }
+    else if ["dioralyte", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "Dioralyte Blackcurrant Sachets GSL"
+    }
+    else if ["dioralyte", "citrus"].allSatisfy(someArray.contains) {
+        return "Dioralyte Citrus Sachets GSL"
+    }
+    else if ["dioralyte", "natural"].allSatisfy(someArray.contains) {
+        return "Dioralyte Natural Sachets GSL"
+    }
+    else if ["dioralyte", "relief", "raspberry"].allSatisfy(someArray.contains) {
+        return "Dioralyte Relief Raspberry Sachets"
+    }
+    else if ["diprobase", "ointment"].allSatisfy(someArray.contains) {
+        return "Diprobase Ointment"
+    }
+    else if ["disprin", "original"].allSatisfy(someArray.contains) {
+        return "Disprin"
+    }
+    else if ["disprin", "direct"].allSatisfy(someArray.contains) {
+        return "Disprin Direct"
+    }
+    else if ["doublebase", "emollient", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "Doublebase Emollient Bath Additive"
+    }
+    else if ["dr.", "reddy's", "cetirizine", "hydrochloride", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Dr. Reddy's Histease Allergy Relief 10mg Tablets"
+    }
+    else if ["dulcoease", "100", "mg", "capsules"].allSatisfy(someArray.contains) {
+        return "Dulcoease 100 mg Capsules"
+    }
+    else if ["dulcolax", "adult", "5", "mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "Dulcolax Adult 5 mg Gastro-resistant Tablets (GSL)"
+    }
+    else if ["dulcolax", "adult", "pico", "liquid", "5", "mg", "/", "5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Dulcolax Adult Pico Liquid, 5 mg / 5 ml, oral solution"
+    }
+    else if ["dulcelax", "adult", "5", "mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "Dulcolax Adult 5 mg Gastro-resistant Tablets (GSL)"
+    }
+    else if ["dulcelax", "adult", "pico", "liquid", "5", "mg", "/", "5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Dulcolax Adult Pico Liquid, 5 mg / 5 ml, oral solution"
+    }
+    else if ["e45", "itch", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "E45 Itch Relief Cream"
+    }
+    else if ["e45", "cream"].allSatisfy(someArray.contains) {
+        return "E45 Cream"
+    }
+    else if ["eczmol", "1%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "Eczmol 1% w/w Cream / Cetraben Protect Antimicrobial 1% Cream"
+    }
+    else if ["emulsifying", "ointment", "bp"].allSatisfy(someArray.contains) {
+        return "Emulsifying Ointment BP"
+    }
+    else if ["eno"].allSatisfy(someArray.contains) {
+        return "Eno"
+    }
+    else if ["essential", "waitrose", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["essential", "waitrose", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["esomeprazole", "20", "mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "Guardium acid reflux control 20mg gastro-resistant tablets"
+    }
+    else if ["epsom", "salts", "bp"].allSatisfy(someArray.contains) {
+        return "Epsom Salts BP"
+    }
+    else if ["eucalyptus", "oil"].allSatisfy(someArray.contains) {
+        return "Eucalyptus Oil BP"
+    }
+    else if ["exorex", "lotion"].allSatisfy(someArray.contains) {
+        return "Coal Tar (Exorex) Lotion"
+    }
+    else if ["eurax", "cream"].allSatisfy(someArray.contains) {
+        return "Eurax Cream"
+    }
+    else if ["fenbid", "gel"].allSatisfy(someArray.contains) {
+        return "Fenbid 5% Gel"
+    }
+    else if ["fenpaed", "ibuprofen", "100", "mg/5", "ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Fenpaed Ibuprofen 100 mg/5 ml Oral Suspension"
+    }
+    else if ["flarin", "joint", "muscular", "pain", "relief", "200", "mg", "soft", "capsules"].allSatisfy(someArray.contains) {
+        return "Flarin Joint & Muscular Pain Relief 200 mg Soft Capsules"
+    }
+    else if ["flexigel"].allSatisfy(someArray.contains) {
+        return "Flexigel"
+    }
+    else if ["freederm", "gel"].allSatisfy(someArray.contains) {
+        return "Freederm Gel"
+    }
+    else if ["fuller’s", "earth", "cream"].allSatisfy(someArray.contains) {
+        return "Fuller's Earth Cream"
+    }
+    else if ["fybogel", "hi-fibre", "lemon"].allSatisfy(someArray.contains) {
+        return "Fybogel Hi-Fibre Lemon Granules"
+    }
+    else if ["fybogel", "hi-fibre", "orange"].allSatisfy(someArray.contains) {
+        return "Fybogel Hi-Fibre Orange Granules"
+    }
+    else if ["fybogel", "lemon"].allSatisfy(someArray.contains) {
+        return "Fybogel Lemon Granules"
+    }
+    else if ["fybogel", "orange"].allSatisfy(someArray.contains) {
+        return "Fybogel Orange Granules"
+    }
+    else if ["fybogel"].allSatisfy(someArray.contains) {
+        return "Fybogel Plain Granules"
+    }
+    else if ["galpharm", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["galpharm", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["galpharm", "day", "night", "max", "strength", "cold", "flu", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["galpharm", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["galpharm", "heartburn", "indigestionrelief"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["gavilast", "heartburn", "and", "indigestion", "75mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "Gavilast Heartburn and Indigestion 75mg Film-coated tablets"
+    }
+    else if ["gaviscon", "advance", "aniseed", "flavour", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Gaviscon Advance Aniseed flavour Oral Suspension"
+    }
+    else if ["gaviscon", "advance", "mint", "chewable", "tablets"].allSatisfy(someArray.contains) {
+        return "Gaviscon Advance Mint Chewable Tablets"
+    }
+    else if ["gaviscon", "advance", "peppermint", "flavour", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Gaviscon Advance Peppermint Flavour Oral Suspension"
+    }
+    else if ["gaviscon", "double", "action", "aniseed"].allSatisfy(someArray.contains) {
+        return "Gaviscon Double Action Aniseed Oral suspension"
+    }
+    else if ["gaviscon", "double", "action", "liquid", "sachets"].allSatisfy(someArray.contains) {
+        return "Gaviscon Double Action Liquid Sachets"
+    }
+    else if ["gaviscon", "double", "action", "mint", "flavour", "chewable", "tablets"].allSatisfy(someArray.contains) {
+        return "Gaviscon Double Action Mint Flavour Chewable Tablets"
+    }
+    else if ["gaviscon", "double", "action", "mint", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Gaviscon Double Action Mint Oral Suspension"
+    }
+    else if ["gaviscon", "double", "action", "mixed", "berries", "flavour", "chewable", "tablets"].allSatisfy(someArray.contains) {
+        return "Gaviscon Double Action Mixed Berries Flavour Chewable Tablets"
+    }
+    else if ["gaviscon", "double", "action", "mixed", "berries", "flavour", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Gaviscon Double Action Mixed Berries Flavour Oral Suspension"
+    }
+    else if ["gaviscon", "original", "aniseed", "relief", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Gaviscon Original Aniseed Relief"
+    }
+    else if ["gaviscon", "peppermint", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "Gaviscon Peppermint Flavour Tablets"
+    }
+    else if ["gaviscon", "strawberry", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "Gaviscon Strawberry Flavour Tablets"
+    }
+    else if ["gaviscon", "peppermint", "liquid", "relief"].allSatisfy(someArray.contains) {
+        return "Gaviscon Peppermint Liquid Relief"
+    }
+    else if ["germolene", "antiseptic", "cream"].allSatisfy(someArray.contains) {
+        return "Germolene Antiseptic Cream"
+    }
+    else if ["germoloids", "hc", "spray"].allSatisfy(someArray.contains) {
+        return "Germoloids HC Spray"
+    }
+    else if ["germoloids", "ointment"].allSatisfy(someArray.contains) {
+        return "Germoloids Ointment"
+    }
+    else if ["germoloids", "suppositories"].allSatisfy(someArray.contains) {
+        return "Germoloids Suppositories"
+    }
+    else if ["glycerin", "suppositories", "bp", "1g", "infants"].allSatisfy(someArray.contains) {
+        return "Glycerin Suppositories BP 1g Infants' Size"
+    }
+    else if ["glycerin", "suppositories", "bp", "2g", "children's", "size"].allSatisfy(someArray.contains) {
+        return "Glycerin Suppositories BP 2g Children's Size"
+    }
+    else if ["glycerin", "suppositories", "bp", "4g", "adult", "size"].allSatisfy(someArray.contains) {
+        return "Glycerin Suppositories BP 4g Adult Size"
+    }
+    else if ["glycerol", "1g", "suppositories"].allSatisfy(someArray.contains) {
+        return "Glycerol 1g Suppositories"
+    }
+    else if ["glycerol", "2g", "suppositories"].allSatisfy(someArray.contains) {
+        return "Glycerol 2g Suppositories"
+    }
+    else if ["glycerol", "4g", "suppositories"].allSatisfy(someArray.contains) {
+        return "Glycerol 4g Suppositories"
+    }
+    else if ["grisol", "1", "%", "spray", "solution"].allSatisfy(someArray.contains) {
+        return "Grisol 1 % Spray"
+    }
+    else if ["guardium", "acid", "reflux", "control", "20mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "Guardium acid reflux control 20mg gastro-resistant tablets"
+    }
+    else if ["gygel", "contraceptive", "jelly"].allSatisfy(someArray.contains) {
+        return "Gygel Contraceptive Jelly"
+    }
+    else if ["happinose", "balm"].allSatisfy(someArray.contains) {
+        return "Happinose 0.3% Ointment"
+    }
+    else if ["hedrin", "4%", "lotion", "dimeticonem"].allSatisfy(someArray.contains) {
+        return "Hedrin 4% cutaneous solution"
+    }
+    else if ["healthpoint", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["healthessentials", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["healthessentials", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["hydrogen", "peroxide", "solution", "3%", "10", "vols"].allSatisfy(someArray.contains) {
+        return "Hydrogen Peroxide Solution 3% BP 10 Vols"
+    }
+    else if ["hydrogen", "peroxide", "solution", "6%", "20", "vols"].allSatisfy(someArray.contains) {
+        return "Hydrogen Peroxide Solution 6% BP 20 Vols"
+    }
+    else if ["hydrogen", "peroxide", "solution", "9%", "30", "vols"].allSatisfy(someArray.contains) {
+        return "Hydrogen Peroxide Solution 9% BP 30 Vols"
+    }
+    else if ["ibuleve", "max", "strength", "pain", "relief", "10%", "gel"].allSatisfy(someArray.contains) {
+        return "Ibuleve Max Strength Pain Relief 10% Gel"
+    }
+    else if ["ibuleve", "pain", "relief", "5%", "gel"].allSatisfy(someArray.contains) {
+        return "Ibuleve Pain Relief 5% Gel/Ibuderm 5 % Gel"
+    }
+    else if ["ibuleve", "speed", "relief", "5%", "spray"].allSatisfy(someArray.contains) {
+        return "Ibuleve Pain Relief 5% Spray"
+    }
+    else if ["imodium", "dual", "action", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Imodium Dual Action Relief Tablets (GSL)"
+    }
+    else if ["imodium", "instants"].allSatisfy(someArray.contains) {
+        return "Imodium Instants"
+    }
+    else if ["imodium", "original"].allSatisfy(someArray.contains) {
+        return "Imodium Original 2mg Capsules"
+    }
+    else if ["ispagel", "orange"].allSatisfy(someArray.contains) {
+        return "Ispagel Orange"
+    }
+    else if ["lamisil", "at", "1%", "cream"].allSatisfy(someArray.contains) {
+        return "Lamisil AT 1% Cream"
+    }
+    else if ["lamisil", "at", "1%", "spray"].allSatisfy(someArray.contains) {
+        return "Lamisil AT 1% Spray"
+    }
+    else if ["lamisil", "once"].allSatisfy(someArray.contains) {
+        return "Lamisil Once"
+    }
+    else if ["lanacane", "creme"].allSatisfy(someArray.contains) {
+        return "Lanacane Creme"
+    }
+    else if ["lemsip", "cough", "for", "dry", "cough", "sore", "throat", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Lemsip Cough for Dry Cough & Sore Throat Oral Solution"
+    }
+    else if ["lemsip", "max", "honey", "ginger", "flavour", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Honey & Ginger Flavour Powder for Oral Solution"
+    }
+    else if ["lemsip", "cough", "for", "mucus", "cough", "catarrh"].allSatisfy(someArray.contains) {
+        return "Lemsip Cough for Mucus Cough & Catarrh 100mg/2.5mg/5ml Oral Solution"
+    }
+    else if ["lemsip", "cough", "max", "for", "chesty", "cough", "cold", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Lemsip Cough Max for Chesty Cough & Cold Powder for Oral Solution"
+    }
+    else if ["lemsip", "cough", "chesty", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Lemsip Cough Chesty"
+    }
+    else if ["lemsip", "max", "all", "one", "lemon"].allSatisfy(someArray.contains) {
+        return "Lemsip Cough Max for Mucus Cough & Cold 1000mg/200mg/12.2mg Powder for Oral Solution"
+    }
+    else if ["lemsip", "max", "all", "day", "cold", "flu", "tablets"].allSatisfy(someArray.contains) {
+        return "Lemsip Max All Day Cold & Flu Tablets"
+    }
+    else if ["lemsip", "max", "all", "one", "breathe", "easy", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Lemsip Max All in One Breathe Easy"
+    }
+    else if ["lemsip", "max", "all", "one", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Lemsip Max All in One Cold & Flu Capsules"
+    }
+    else if ["lemsip", "max", "all", "one", "lemon"].allSatisfy(someArray.contains) {
+        return "Lemsip Max All in One Lemon"
+    }
+    else if ["lemsip", "max", "all", "one", "liquid"].allSatisfy(someArray.contains) {
+        return "Lemsip Max All In One Liquid"
+    }
+    else if ["lemsip", "max", "all", "one", "wild", "berry", "hot", "orange"].allSatisfy(someArray.contains) {
+        return "Lemsip Max All in One Wild Berry and Hot Orange"
+    }
+    else if ["lemsip", "max", "blackcurrant", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Blackcurrant Flavour Tablets"
+    }
+    else if ["lemsip", "max", "day", "night", "cold", "flu", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Day & Night Cold and Flu Relief Capsules (GSL)"
+    }
+    else if ["lemsip", "max", "cold", "flu", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Cold and Flu Blackcurrant"
+    }
+    else if ["lemsip", "max", "cold", "flu", "lemon"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Cold and Flu Lemon"
+    }
+    else if ["lemsip", "max", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Cold and Flu Capsules"
+    }
+    else if ["lemsip", "max", "lemon", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Lemon Flavour Tablets"
+    }
+    else if ["lemsip", "max", "sinus"].allSatisfy(someArray.contains) {
+        return "Lemsip Max Sinus"
+    }
+    else if ["lemsip", "cold", "flu", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "Lemsip Cold & Flu Blackcurrant"
+    }
+    else if ["lemsip", "cold", "flu", "breathe", "easy"].allSatisfy(someArray.contains) {
+        return "Lemsip Cold & Flu Breathe Easy"
+    }
+    else if ["lemsip", "cold", "flu", "lemon"].allSatisfy(someArray.contains) {
+        return "Lemsip Cold & Flu Lemon"
+    }
+    else if ["loperamide", "2mg", "capsules", "hard"].allSatisfy(someArray.contains) {
+        return "Loperamide 2mg Capsules (GSL)"
+    }
+    else if ["lorapaed", "allergy", "relief", "5", "mg/5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Lorapaed Allergy Relief 5 mg/5 ml Oral Solution"
+    }
+    else if ["lypsyl", "cold", "sore", "gel"].allSatisfy(someArray.contains) {
+        return "Lypsyl Cold Sore Gel"
+    }
+    else if ["lypsyl", "acyclovir", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["lloydspharmacy", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["lloydspharmacy", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["maalox", "175mg/200mg", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Maalox 175mg/200mg Oral Suspension"
+    }
+    else if ["maalox", "plus"].allSatisfy(someArray.contains) {
+        return "Maalox Plus suspension"
+    }
+    else if ["mackenzies", "smelling", "salts"].allSatisfy(someArray.contains) {
+        return "MacKenzies Smelling Salts"
+    }
+    else if ["magnesium", "hydroxide", "mixture"].allSatisfy(someArray.contains) {
+        return "Magnesium Hydroxide Mixture BP"
+    }
+    else if ["magnesium", "trisilicate", "mixture"].allSatisfy(someArray.contains) {
+        return "Magnesium Trisilicate Mixture BP"
+    }
+    else if ["mandanol", "paracetamol", "500"].allSatisfy(someArray.contains) {
+        return "Mandanol (Paracetamol) 500 mg Tablets"
+    }
+    else if ["medijel", "gel"].allSatisfy(someArray.contains) {
+        return "Medijel Gel"
+    }
+    else if ["menthol", "and", "eucalyptus", "inhalation", "1980"].allSatisfy(someArray.contains) {
+        return "Menthol and Eucalyptus Inhalation BP 1980"
+    }
+    else if ["metanium", "nappy", "rash", "ointment"].allSatisfy(someArray.contains) {
+        return "Metanium Nappy Rash Ointment"
+    }
+    else if ["mintec"].allSatisfy(someArray.contains) {
+        return "Mintec"
+    }
+    else if ["migraeeze", "feverfew", "tablets"].allSatisfy(someArray.contains) {
+        return "Care Feverfew Migraine Relief Tablets"
+    }
+    else if ["murine", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["morrisons", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["morrisons", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["morrisons", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["morrisons", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["morrisons", "laxative", "tablets", "adult", "bisacodyl"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["mucogel", "suspension"].allSatisfy(someArray.contains) {
+        return "Mucogel Suspension"
+    }
+    else if ["mycota", "cream"].allSatisfy(someArray.contains) {
+        return "Mycota Cream"
+    }
+    else if ["mycota", "powder"].allSatisfy(someArray.contains) {
+        return "Mycota Powder"
+    }
+    else if ["nasacort", "allergy", "relief", "for", "adults", "nasal", "spray", "suspension"].allSatisfy(someArray.contains) {
+        return "Nasacort Allergy Relief for Adults 55 micrograms/dose, nasal spray, suspension"
+    }
+    else if ["natures", "aid", "herbal", "catarrh", "relief", "formula"].allSatisfy(someArray.contains) {
+        return "Natures Aid Herbal Catarrh Relief Formula"
+    }
+    else if ["natures", "aid", "tea", "tree", "oil"].allSatisfy(someArray.contains) {
+        return "Natures Aid Tea Tree Oil 100%"
+    }
+    else if ["neutrogena", "t/gel", "therapeutic", "shampoo"].allSatisfy(someArray.contains) {
+        return "eutrogena T/Gel Therapeutic Shampoo"
+    }
+    else if ["nexium", "control", "tablets"].allSatisfy(someArray.contains) {
+        return "Nexium Control"
+    }
+    else if ["nexium", "control", "capsules"].allSatisfy(someArray.contains) {
+        return "Nexium Control Capsules 20mg Esomeprazole"
+    }
+    else if ["nicorette", "15mg", "inhalator"].allSatisfy(someArray.contains) {
+        return "Nicorette 15mg Inhalator"
+    }
+    else if ["nicorette", "freshmint", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette Freshmint 2 mg Gum"
+    }
+    else if ["nicorette", "freshmint", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette Freshmint 4 mg Gum"
+    }
+    else if ["nicorette", "fruitfusion", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette Fruitfusion 2 mg Gum"
+    }
+    else if ["nicorette", "fruitfusion", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette Fruitfusion 4 mg Gum"
+    }
+    else if ["nicorette", "icy", "white", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette Icy White 2 mg Gum"
+    }
+    else if ["nicorette", "icy", "white", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette Icy White 4 mg Gum"
+    }
+    else if ["nicorette", "cools", "2mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "Nicorette Cools 2mg Lozenge"
+    }
+    else if ["nicorette", "cools", "4mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "Nicorette Cools 4mg Lozenge"
+    }
+    else if ["nicorette", "fruit", "2mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "Nicorette Fruit 2 mg Lozenge"
+    }
+    else if ["nicorette", "invisipatch", "10mg"].allSatisfy(someArray.contains) {
+        return "Nicorette Invisi 10mg Patch"
+    }
+    else if ["nicorette", "invisipatch", "15mg"].allSatisfy(someArray.contains) {
+        return "Nicorette Invisi 15mg Patch"
+    }
+    else if ["nicorette", "invisipatch", "25mg"].allSatisfy(someArray.contains) {
+        return "Nicorette Invisi 25mg Patch"
+    }
+    else if ["nicorette", "microtab", "2mg"].allSatisfy(someArray.contains) {
+        return "Nicorette Microtab or Boots NicAssist 2 mg microtab"
+    }
+    else if ["nicorette", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Nicorette Nasal Spray"
+    }
+    else if ["nicorette", "quickmist", "1mg/spray", "mouthspray"].allSatisfy(someArray.contains) {
+        return "Nicorette QuickMist 1mg/spray mouthspray"
+    }
+    else if ["nicorette", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette 2mg Gum"
+    }
+    else if ["nicorette", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "Nicorette 4mg Gum"
+    }
+    else if ["nicassist", "translucent", "10mg", "patch"].allSatisfy(someArray.contains) {
+        return "Nicorette Invisi 10mg Patch"
+    }
+    else if ["nicassist", "translucent", "15mg", "patch"].allSatisfy(someArray.contains) {
+        return "Nicorette Invisi 15mg Patch"
+    }
+    else if ["nicassist", "translucent", "25mg", "patch"].allSatisfy(someArray.contains) {
+        return "Nicorette Invisi 25mg Patch"
+    }
+    else if ["nicotinell", "fruit", "2mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "Nicotinell fruit 2mg medicated chewing gum"
+    }
+    else if ["nicotinell", "fruit", "4mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "Nicotinell fruit 4mg medicated chewing gum"
+    }
+    else if ["nicotinell", "mint", "1mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "Nicotinell Mint 1mg Lozenge"
+    }
+    else if ["nicotinell", "mint", "2mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "Nicotinell Mint 2mg Lozenge"
+    }
+    else if ["nicotinell", "mint", "2mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "Nicotinell mint 2mg medicated chewing gum"
+    }
+    else if ["nicotinell", "mint", "4mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "Nicotinell mint 4mg medicated chewing gum"
+    }
+    else if ["nicotinell", "tts", "10"].allSatisfy(someArray.contains) {
+        return "Nicotinell TTS 10 Transdermal Patches"
+    }
+    else if ["nicotinell", "tts", "20"].allSatisfy(someArray.contains) {
+        return "Nicotinell TTS 20 Transdermal Patches"
+    }
+    else if ["nicotinell", "tts", "30"].allSatisfy(someArray.contains) {
+        return "Nicotinell TTS 30 Transdermal Patches"
+    }
+    else if ["nizoral", "anti-dandruff", "shampoo"].allSatisfy(someArray.contains) {
+        return "Nizoral Antidandruff Shampoo"
+    }
+    else if ["normacol", "plus"].allSatisfy(someArray.contains) {
+        return "Normacol Plus"
+    }
+    else if ["normacol"].allSatisfy(someArray.contains) {
+        return "Normacol"
+    }
+    else if ["nurofen", "200mg", "liquid", "capsules"].allSatisfy(someArray.contains) {
+        return "Nurofen 200mg Liquid Capsules"
+    }
+    else if ["nurofen", "day", "night", "cold", "flu", "200mg/5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Nurofen Day & Night Cold & Flu 200mg/5mg Tablets"
+    }
+    else if ["nurofen", "cold", "flu", "relief", "200mg/5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Nurofen Cold & Flu Relief 200mg/5mg Tablets"
+    }
+    else if ["nurofen", "express", "period", "pain", "200mg", "soft", "capsules"].allSatisfy(someArray.contains) {
+        return "Nurofen Express Period Pain 200mg soft capsules"
+    }
+    else if ["nurofen", "express", "200mg", "liquid", "capsules"].allSatisfy(someArray.contains) {
+        return "Nurofen Express 200mg Liquid Capsules"
+    }
+    else if ["nurofen", "express", "256mg", "caplets"].allSatisfy(someArray.contains) {
+        return "Nurofen Express 256 mg Caplets (GSL)"
+    }
+    else if ["nurofen", "express", "256mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Nurofen Express 256 mg Tablets"
+    }
+    else if ["nurofen", "express", "342mg", "caplets"].allSatisfy(someArray.contains) {
+        return "Nurofen Express 256 mg Caplets"
+    }
+    else if ["nurofen", "for", "children", "orange"].allSatisfy(someArray.contains) {
+        return "Nurofen for Children 3 months to 9 years Orange"
+    }
+    else if ["nurofen", "for", "children", "strawberry"].allSatisfy(someArray.contains) {
+        return "Nurofen for Children 3 months to 9 years Strawberry"
+    }
+    else if ["nurofen", "joint", "back", "pain", "relief", "max", "strength", "10%", "gel"].allSatisfy(someArray.contains) {
+        return "Nurofen Joint & Back Pain Relief Max Strength 10% Gel"
+    }
+    else if ["nurofen", "joint", "muscular", "pain", "relief", "200mg", "medicated", "plaster"].allSatisfy(someArray.contains) {
+        return "Nurofen Joint & Muscular Pain Relief 200mg Medicated Plaster"
+    }
+    else if ["nurofen", "meltlets", "200mg", "orodispersible", "tablets"].allSatisfy(someArray.contains) {
+        return "Nurofen Meltlets 200mg Orodispersible Tablets"
+    }
+    else if ["nurofen", "meltlets", "lemon"].allSatisfy(someArray.contains) {
+        return "Nurofen Meltlets Lemon"
+    }
+    else if ["nurofen", "migraine", "pain"].allSatisfy(someArray.contains) {
+        return "Nurofen Migraine Pain"
+    }
+    else if ["nurofen", "pain", "relief", "200mg", "soft", "capsules"].allSatisfy(someArray.contains) {
+        return "Nurofen Pain Relief 200mg Soft Capsules"
+    }
+    else if ["nurofen", "pain", "relief", "256mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Nurofen Pain Relief 256mg Tablets"
+    }
+    else if ["nurofen", "sinus", "blocked", "nose", "200mg/5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Nurofen Sinus & Blocked Nose 200mg/5mg Tablets"
+    }
+    else if ["nurofen", "tension", "headache"].allSatisfy(someArray.contains) {
+        return "Nurofen Tension Headache"
+    }
+    else if ["nurofen", "200mg", "caplets"].allSatisfy(someArray.contains) {
+        return "Nurofen 200 mg Caplets"
+    }
+    else if ["nurofen", "200mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Nurofen 200 mg Tablets"
+    }
+    else if ["nuromol", "dual", "action", "pain", "relief", "200mg/500mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Nuromol Dual Action Pain Relief 200mg/500mg tablets"
+    }
+    else if ["numark+", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["numark+", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["numark+", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["numark+", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["numark+", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["numark+", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["odour", "free", "lloyds", "cream"].allSatisfy(someArray.contains) {
+        return "Odour Free Lloyds Cream"
+    }
+    else if ["odour", "cream"].allSatisfy(someArray.contains) {
+        return "Oilatum Cream (pump)"
+    }
+    else if ["oilatum", "emollient"].allSatisfy(someArray.contains) {
+        return "Oilatum Emollient"
+    }
+    else if ["oilatum", "junior", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "Oilatum Junior Bath Additive"
+    }
+    else if ["oilatum", "plus"].allSatisfy(someArray.contains) {
+        return "Oilatum Plus"
+    }
+    else if ["oilatum", "shower", "gel", "fragrance", "free"].allSatisfy(someArray.contains) {
+        return "Oilatum Shower Gel Fragrance-Free"
+    }
+    else if ["orajel", "dental", "gel"].allSatisfy(someArray.contains) {
+        return "Orajel Dental Gel"
+    }
+    else if ["orajel", "mouth", "gel"].allSatisfy(someArray.contains) {
+        return "Orajel Mouth Gel"
+    }
+    else if ["optrex", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["oraldene"].allSatisfy(someArray.contains) {
+        return "Oraldene"
+    }
+    else if ["original", "andrews", "salts"].allSatisfy(someArray.contains) {
+        return "Original Andrews Salts"
+    }
+    else if ["otrivine", "adult", "nasal", "drops"].allSatisfy(someArray.contains) {
+        return "Otrivine Adult Nasal Drops"
+    }
+    else if ["otrivine", "adult", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Otrivine Adult Nasal Spray"
+    }
+    else if ["otrivine", "allergy", "relief", "0.1%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Otrivine Allergy Relief 0.1% Nasal Spray"
+    }
+    else if ["otrivine", "blocked", "nose", "relief", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Otrivine Blocked Nose Relief, 0.1% w/v Nasal Spray, Solution"
+    }
+    else if ["otrivine", "congestion", "relief", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Otrivine Congestion Relief 0.1% Nasal Spray"
+    }
+    else if ["otrivine", "sinusitis", "relief", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Otrivine Sinusitis Relief, 0.1% w/v Nasal Spray, Solution"
+    }
+    else if ["opticrom", "hayfever", "2%w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["panadol", "actiFast", "soluble", "tablets"].allSatisfy(someArray.contains) {
+        return "Panadol ActiFast Soluble Tablets"
+    }
+    else if ["panadol", "actiFast", "tablets"].allSatisfy(someArray.contains) {
+        return "Panadol ActiFast Tablets (GSL)"
+    }
+    else if ["panadol", "extra", "advance", "500mg/65mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Panadol Extra Advance 500mg/65mg Tablets (GSL)"
+    }
+    else if ["panadol", "advance", "500mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Panadol Advance 500 mg Tablets (GSL)"
+    }
+    else if ["panadol", "advance", "500", "mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Panadol Advance 500 mg Tablets (GSL)"
+    }
+    else if ["panadol", "extra", "soluble", "tablets"].allSatisfy(someArray.contains) {
+        return "Panadol Extra Soluble Tablets"
+    }
+    else if ["panadol", "original", "tablets"].allSatisfy(someArray.contains) {
+        return "Panadol Original Tablets"
+    }
+    else if ["panadol", "period", "pain"].allSatisfy(someArray.contains) {
+        return "Panadol Period Pain 500mg/65mg Tablets"
+    }
+    else if ["paracetamol", "500mg", "effervescent", "tablets"].allSatisfy(someArray.contains) {
+        return "Paracetamol 500 mg effervescent tablets"
+    }
+    else if ["peptac", "liquid"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["peppermint", "water", "bp", "1973"].allSatisfy(someArray.contains) {
+        return "Peppermint Water BP 1973"
+    }
+    else if ["phorpain", "gel"].allSatisfy(someArray.contains) {
+        return "Phorpain 5 % w/w Gel"
+    }
+    else if ["phosphate", "sandoz"].allSatisfy(someArray.contains) {
+        return "Phosphate Sandoz"
+    }
+    else if ["pollenase", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "Aspire Hayfever Relief 2% w/v Eye Drops, solution"
+    }
+    else if ["pinewood", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["pinewood's", "bites", "and", "stings", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "Pinewood's Bites and Stings Relief Cream"
+    }
+    else if ["pirinase", "hayfever", "relief", "for", "adults", "0.05%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Pirinase Hayfever Relief for Adults 0.05% Nasal Spray"
+    }
+    else if ["piriteze", "allergy", "syrup"].allSatisfy(someArray.contains) {
+        return "Piriteze Allergy 1mg/ml Syrup"
+    }
+    else if ["piriteze", "allergy", "tablets"].allSatisfy(someArray.contains) {
+        return "Piriteze Allergy Tablets (GSL)"
+    }
+    else if ["pollenshield", "hayfever", "relief"].allSatisfy(someArray.contains) {
+        return "POLLENSHIELD HAYFEVER RELIEF (GSL)"
+    }
+    else if ["polytar", "scalp", "shampoo"].allSatisfy(someArray.contains) {
+        return "Polytar Scalp Shampoo"
+    }
+    else if ["pyrocalm", "control", "20mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "Pyrocalm Control 20mg Gastro-Resistant Tablets"
+    }
+    else if ["ranitidine", "75", "mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "Gavilast Heartburn and Indigestion 75mg Film-coated tablets"
+    }
+    else if ["radianb", "anti-inflammatory", "ibuprofen", "5%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "Radian B Ibuprofen 5% w/w Gel"
+    }
+    else if ["radian", "massage", "cream"].allSatisfy(someArray.contains) {
+        return "Radian B Muscle Rub"
+    }
+    else if ["regaine", "for", "men", "extra", "strength", "scalp", "foam", "5%", "w/w", "cutaneous", "foam"].allSatisfy(someArray.contains) {
+        return "Regaine for Men Extra Strength Scalp Foam 5% w/w Cutaneous Foam (GSL)"
+    }
+    else if ["regaine", "for", "men", "extra", "strength", "scalp", "solution"].allSatisfy(someArray.contains) {
+        return "Regaine for Men Extra Strength Scalp Solution 5% w/v Cutaneous Solution"
+    }
+    else if ["regaine", "for", "women", "once", "a", "day", "scalp", "foam", "5%", "w/w", "cutaneous", "foam"].allSatisfy(someArray.contains) {
+        return "Regaine for Women Once a Day Scalp Foam 5% w/w Cutaneous Foam"
+    }
+    else if ["regaine", "for", "women", "regular", "strength"].allSatisfy(someArray.contains) {
+        return "Regaine for Women Regular Strength"
+    }
+    else if ["remegel"].allSatisfy(someArray.contains) {
+        return "Remegel"
+    }
+    else if ["robitussin", "chesty", "cough", "medicine"].allSatisfy(someArray.contains) {
+        return "Robitussin Chesty Cough Medicine"
+    }
+    else if ["red", "bull"].allSatisfy(someArray.contains){
+        return "Red Bull! You found an easter egg!"
+    }
+    else if ["savlon", "antiseptic", "cream"].allSatisfy(someArray.contains) {
+        return "Savlon Antiseptic Cream"
+    }
+    else if ["savlon", "bites", "stings", "pain", "relief", "gel"].allSatisfy(someArray.contains) {
+        return "Savlon Bites & Stings Pain Relief Gel"
+    }
+    else if ["savlon", "dual", "action", "gel"].allSatisfy(someArray.contains) {
+        return "Savlon Dual Action Gel"
+    }
+    else if ["scholl", "advance", "athlete's", "foot", "cream"].allSatisfy(someArray.contains) {
+        return "Scholl Advance Athlete's Foot Cream"
+    }
+    else if ["scholl", "athlete's", "foot", "spray", "liquid"].allSatisfy(someArray.contains) {
+        return "Scholl Athlete's Foot Spray Liquid"
+    }
+    else if ["scholl", "seal", "and", "heal", "verruca", "removal", "gel"].allSatisfy(someArray.contains) {
+        return "Scholl Seal and Heal Verruca Removal Gel"
+    }
+    else if ["scholl", "verruca", "removal", "system", "40%", "w/w", "medicated", "plasters"].allSatisfy(someArray.contains) {
+        return "Scholl Verruca Removal System 40% w/w Medicated Plasters"
+    }
+    else if ["schollmed", "once", "weekly", "fungal", "nail", "treatment", "5%", "w/v", "medicated", "nail", "lacquer"].allSatisfy(someArray.contains) {
+        return "Schollmed Once Weekly Fungal Nail Treatment 5%w/v Medicated Nail Lacquer"
+    }
+    else if ["senease", "7.5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "SenEase 7.5 mg Tablets (Senna Tablets)"
+    }
+    else if ["senokot", "7.5", "mg", "tablets", "adult"].allSatisfy(someArray.contains) {
+        return "Senokot 7.5 mg Tablets Adult"
+    }
+    else if ["senokot", "max", "strength", "tablets", "adult"].allSatisfy(someArray.contains) {
+        return "Senokot Max Strength Tablets Adult"
+    }
+    else if ["setlers", "antacid", "chewable", "tablets", "peppermint", "flavour"].allSatisfy(someArray.contains) {
+        return "Setlers Antacid Chewable Tablets Peppermint Flavour"
+    }
+    else if ["setlers", "antacid", "chewable", "tablets", "spearmint", "flavour"].allSatisfy(someArray.contains) {
+        return "Setlers Antacid Chewable Tablets Spearmint Flavour"
+    }
+    else if ["simple", "linctus", "paediatric", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "Simple Linctus Paediatric Sugar Free"
+    }
+    else if ["simple", "linctus", "paediatric"].allSatisfy(someArray.contains) {
+        return "Simple Linctus Paediatric BP"
+    }
+    else if ["simple", "linctus", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "Simple Linctus Sugar Free"
+    }
+    else if ["simple", "linctus"].allSatisfy(someArray.contains) {
+        return "Simple Linctus BP"
+    }
+    else if ["six", "plus", "parapaed", "250", "mg/5", "ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Six Plus Parapaed 250mg/5ml Oral Suspension"
+    }
+    else if ["six", "plus", "parapaed", "250mg/5ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "Six Plus Parapaed 250mg/5ml Oral Suspension"
+    }
+    else if ["slow", "sodium"].allSatisfy(someArray.contains) {
+        return "Slow Sodium"
+    }
+    else if ["sodium", "bicarbonate"].allSatisfy(someArray.contains) {
+        return "Sodium Bicarbonate BP"
+    }
+    else if ["strepsils", "children", "6+", "lozenges"].allSatisfy(someArray.contains) {
+        return "Strepsils Children 6+ Lozenges"
+    }
+    else if ["strepsils", "triple", "action", "honey", "lemon", "flavour", "2.4mg", "lozenges"].allSatisfy(someArray.contains) {
+        return "Strepsils Triple Action Honey & Lemon Flavour 2.4mg Lozenges"
+    }
+    else if ["strepsils", "extra", "triple", "action", "blackcurrant", "lozenges"].allSatisfy(someArray.contains) {
+        return "Strepsils Extra Triple Action Blackcurrant Lozenges"
+    }
+    else if ["strepsils", "extra", "triple", "action", "cherry", "lozenges"].allSatisfy(someArray.contains) {
+        return "Strepsils Extra Triple Action Cherry Lozenges"
+    }
+    else if ["strepsils", "honey", "lemon"].allSatisfy(someArray.contains) {
+        return "Strepsils Honey and Lemon"
+    }
+    else if ["strepsils", "honey:", "lemon"].allSatisfy(someArray.contains) {
+        return "Strepsils Honey and Lemon"
+    }
+    else if ["strepsils", "honeys", "lemon"].allSatisfy(someArray.contains) {
+        return "Strepsils Honey and Lemon"
+    }
+    else if ["strepsils", "menthol", "1.2mg/0.6mg", "lozenges"].allSatisfy(someArray.contains) {
+        return "Strepsils Menthol 1.2mg/0.6mg Lozenges"
+    }
+    else if ["strepsils", "orange", "vitamin", "c", "100mg"].allSatisfy(someArray.contains) {
+        return "Strepsils Orange with Vitamin C 100mg"
+    }
+    else if ["strepsils", "sore", "throat", "blocked", "nose"].allSatisfy(someArray.contains) {
+        return "Strepsils Sore Throat and Blocked Nose"
+    }
+    else if ["strepsils", "sore", "throat", "cough"].allSatisfy(someArray.contains) {
+        return "Strepsils Sore Throat and Cough"
+    }
+    else if ["strepsils", "strawberry", "sugar", "free", "lozenges"].allSatisfy(someArray.contains) {
+        return "Strepsils Strawberry Sugar Free Lozenges"
+    }
+    else if ["strepsils"].allSatisfy(someArray.contains) {
+        return "Strepsils"
+    }
+    else if ["sudafed", "blocked", "nose", "sinus", "capsules"].allSatisfy(someArray.contains) {
+        return "Sudafed Blocked Nose & Sinus Capsules"
+    }
+    else if ["sudafed", "blocked", "nose", "spray"].allSatisfy(someArray.contains) {
+        return "Sudafed Blocked Nose Spray"
+    }
+    else if ["sudafed", "congestion", "headache", "relief", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Sudafed Congestion & Headache Relief Day & Night Capsules, hard"
+    }
+    else if ["sudafed", "congestion", "headache", "relief", "max", "strength"].allSatisfy(someArray.contains) {
+        return "Sudafed Congestion & Headache Relief Max Strength"
+    }
+    else if ["sudafed", "congestion", "relief", "0.1%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Sudafed Congestion Relief 0.1% Nasal Spray, solution"
+    }
+    else if ["sudafed", "mucus", "relief", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Sudafed Mucus Relief Day & Night Capsules"
+    }
+    else if ["sudafed", "mucus", "relief", "triple", "action", "cold", "flu", "tablets"].allSatisfy(someArray.contains) {
+        return "Sudafed Mucus Relief Triple Action Cold & Flu Tablets"
+    }
+    else if ["sudafed", "sinus", "max", "strength", "capsules"].allSatisfy(someArray.contains) {
+        return "Sudafed Sinus Max Strength Capsules"
+    }
+    else if ["sudafed", "sinus", "pain", "relief", "200", "mg/6.1", "mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Sudafed Sinus Pain Relief 200mg/6.1mg Tablets"
+    }
+    else if ["sudafed", "sinus-ease", "0.1%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "Sudafed Sinus-Ease 0.1% Nasal Spray"
+    }
+    else if ["sudafed", "mucus", "relief", "triple", "action", "cold", "flu", "tablets"].allSatisfy(someArray.contains) {
+        return "Benylin Chesty Cough & Cold Tablets"
+    }
+    else if ["sudocrem", "antiseptic", "healing", "cream"].allSatisfy(someArray.contains) {
+        return "Sudocrem Antiseptic Healing Cream"
+    }
+    else if ["surgical", "spirit"].allSatisfy(someArray.contains) {
+        return "Surgical Spirit BP"
+    }
+    else if ["superdrug", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Aciclovir Cold Sore Cream"
+    }
+    else if ["superdrug", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["superdrug", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["superdrug", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["superdrug", "constipation", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["superdrug", "family", "hayfever", "allergy", "relief", "liquid"].allSatisfy(someArray.contains) {
+        return "Boots Hayfever & Allergy Relief Syrup"
+    }
+    else if ["sainsbury’s", "haemorrhoid", "relief", "suppositories"].allSatisfy(someArray.contains) {
+        return "Anodesyn Suppositories"
+    }
+    else if ["sainsbury’s", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["sainsbury’s", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["sainsbury’s", "care", "antiseptic", "first", "aid", "cream"].allSatisfy(someArray.contains) {
+        return "Care Antiseptic First Aid Cream"
+    }
+    else if ["sainsbury's", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["sainsbury's", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["sainsbury's", "family", "hayfever", "allergy", "relief", "liquid"].allSatisfy(someArray.contains) {
+        return "Boots Hayfever & Allergy Relief Syrup"
+    }
+    else if ["tesco", "max", "strength", "cold", "flu", "day", "night", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["tesco", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Max Strength Capsules"
+    }
+    else if ["tesco", "allergy", "hayfever", "relief", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Cetirizine Hydrochloride 10mg Tablets"
+    }
+    else if ["tesco", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "Acidex, Compound Alginate Oral Suspension, Heartburn and Indigestion Liquid (PL 04917/0021)"
+    }
+    else if ["tesco", "constipation", "relief", "suppositories", "4g"].allSatisfy(someArray.contains) {
+        return "Glycerin Suppositories BP 4g Adult Size"
+    }
+    else if ["tesco", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "Bisalax Constipation Relief 5mg Tablets Adult"
+    }
+    else if ["tesco", "aspirin", "300mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Aspirin 300mg Tablets"
+    }
+    else if ["treathay", "120", "mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "Treathay 120 mg Film-coated Tablets"
+    }
+    else if ["tixylix", "blackcurrant", "flavour", "syrup"].allSatisfy(someArray.contains) {
+        return "Tixylix Blackcurrant Flavour Syrup"
+    }
+    else if ["tixylix", "toddler", "syrup"].allSatisfy(someArray.contains) {
+        return "Tixylix Children’s cough Syrup"
+    }
+    else if ["tixylix", "baby", "syrup"].allSatisfy(someArray.contains) {
+        return "Tixylix Infant Cough Syrup"
+    }
+    else if ["tums", "assorted", "fruit", "antacid", "tablets"].allSatisfy(someArray.contains) {
+        return "Tums Assorted Fruit Antacid Tablets"
+    }
+    else if ["unguentum", "m", "cream"].allSatisfy(someArray.contains) {
+        return "Unguentum M Cream"
+    }
+    else if ["ucalm", "st", "john's", "wort", "tablets"].allSatisfy(someArray.contains) {
+        return "Care St John's Wort Low Mood Relief Tablets"
+    }
+    else if ["value", "health", "glycerin"].allSatisfy(someArray.contains) {
+        return "Value Health Glycerin BP"
+    }
+    else if ["vigranon-b", "syrup"].allSatisfy(someArray.contains) {
+        return "Vigranon-B Syrup"
+    }
+    else if ["virasorb", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Virasorb Cold Sore Cream"
+    }
+    else if ["vitamin", "b", "compound", "strong", "tablets"].allSatisfy(someArray.contains) {
+        return "Vitamin B Compound Strong Tablets"
+    }
+    else if ["vitamin", "e", "suspension", "100", "mg", "in", "1", "ml"].allSatisfy(someArray.contains) {
+        return "Vitamin E Suspension 100mg/ml"
+    }
+    else if ["voke", "0.45mg", "inhaler"].allSatisfy(someArray.contains) {
+        return "Voke 0.45 mg Inhaler"
+    }
+    else if ["voltarol", "back", "muscle", "pain", "relief", "1.16%", "gel"].allSatisfy(someArray.contains) {
+        return "Voltarol Back and Muscle Pain Relief 1.16% Gel"
+    }
+    else if ["voltarol", "joint", "back", "pain", "relief", "2.32%", "gel"].allSatisfy(someArray.contains) {
+        return "Voltarol Joint & Back Pain Relief 2.32% Gel"
+    }
+    else if ["WindSetlers"].allSatisfy(someArray.contains) {
+        return "WindSetlers"
+    }
+    else if ["wilko", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "Benylin Cold & Flu Day & Night Max Strength Capsules"
+    }
+    else if ["wockhardt", "allergy", "hayfever", "relief", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "Wockhardt Allergy and Hayfever Relief 10mg Film-coated Tablets"
+    }
+    else if ["woodwards", "gripe", "water", "alcohol", "free", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "Woodwards Gripe Water - Alcohol Free & Sugar Free"
+    }
+    else if ["zinc", "castor", "oil", "ointment"].allSatisfy(someArray.contains) {
+        return "Zinc and Castor Oil Ointment BP"
+    }
+    else if ["ziralton", "allergy", "relief", "for", "children", "5", "mg/5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "Ziralton Allergy Relief for Children 5mg/5ml Oral Solution"
+    }
+    else if ["zirtek", "allergy", "relief", "10", "mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "Zirtek Allergy Relief 10 mg film-coated Tablets"
+    }
+    else if ["zovirax", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "Zovirax Cold Sore Cream"
+    }
+    else {
+        return "Unidentified"
+    }
+}
+
+func getProductURL(someArray: Array<String>) -> String {
+    if ["4head", "levomenthol"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/305/smpc"
+    }
+    else if ["asda+", "max", "strength", "cold", "flu", "day", "night"].allSatisfy(someArray.contains){
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["asda", "heartburn", "and", "indigestion", "liquid"].allSatisfy(someArray.contains){
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["acidex", "oral", "suspension", "aniseed", "flavour"].allSatisfy(someArray.contains){
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["acnecide", "face", "5%", "w/w", "gel"].allSatisfy(someArray.contains){
+        return "https://www.medicines.org.uk/emc/product/11258/smpc"
+    }
+    else if ["acnecide", "face", "wash", "5%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11257/smpc"
+    }
+    else if ["acriflex", "0.25%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4877/smpc"
+    }
+    else if ["adios", "max"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6232/smpc"
+    }
+    else if ["allacan", "10mg", "film-coated", "tablets", "hay", "fever", "and", "allergy", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1755/smpc"
+    }
+    else if ["allacon", "10mg", "film-coated", "tablets", "hay", "fever", "and", "allergy", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1755/smpc"
+    }
+    else if ["allercrom", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4136/smpc"
+    }
+    else if ["allevia", "120mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/13208/smpc"
+    }
+    else if ["anadin", "extra", "soluble"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11892/smpc"
+    }
+    else if ["anadin", "extra"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11893/smpc"
+    }
+    else if ["anadin", "ibuprofen"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3876/smpc"
+    }
+    else if ["anadin", "joint", "pain"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6174/smpc"
+    }
+    else if ["anadin", "original"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11895/smpc"
+    }
+    else if ["anadin", "paracetamol"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11899/smpc"
+    }
+    else if ["anadin", "ultra"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3877/smpc"
+    }
+    else if ["anadin", "liquifast"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3877/smpc"
+    }
+    else if ["anadin", "period", "pain", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3877/smpc"
+    }
+    else if ["anbesol", "adult", "strength", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1304/smpc"
+    }
+    else if ["anodesyn", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4821/smpc"
+    }
+    else if ["anodesyn", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4814/smpc"
+    }
+    else if ["anthisan", "bite", "and", "sting", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1633/smpc"
+    }
+    else if ["anusol", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1486/smpc"
+    }
+    else if ["anusol", "soothing", "relief", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5389/smpc"
+    }
+    else if ["anusol", "soothing", "relief", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5406/smpc"
+    }
+    else if ["anusol", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1487/smpc"
+    }
+    else if ["anusol", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1488/smpc"
+    }
+    else if ["aqueous", "calamine", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4878/smpc"
+    }
+    else if ["aqueous", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4820/smpc"
+    }
+    else if ["ascorbic", "acid", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9712/smpc"
+    }
+    else if ["ashton", "parsons", "teething", "powders"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2800/smpc"
+    }
+    else if ["aspire", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["balneum", "plus", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6393/smpc"
+    }
+    else if ["balneum", "plus", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6388/smpc"
+    }
+    else if ["balneum", "bath", "oil"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6392/smpc"
+    }
+    else if ["bazuka", "extra", "strength", "treatment", "26%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4612/smpc"
+    }
+    else if ["bazuka", "treatment", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6625/smpc"
+    }
+    else if ["beechams", "max", "strength", "all", "in", "one", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6483/smpc"
+    }
+    else if ["beechams", "flu", "plus", "hot", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6477/smpc"
+    }
+    else if ["beechams", "flu", "plus", "caplets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3925/smpc"
+    }
+    else if ["beechams", "all", "in", "one", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3913/smpc"
+    }
+    else if ["beechams", "all", "in", "one", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6476/smpc"
+    }
+    else if ["beechams", "breathe", "clear", "hot", "honey", "lemon", "menthol", "flavour", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4749/smpc"
+    }
+    else if ["beechams", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3527/smpc"
+    }
+    else if ["beechams", "cold", "flu", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/356/smpc"
+    }
+    else if ["beechams", "cold", "flu", "lemon", "honey"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/357/smpc"
+    }
+    else if ["beechams", "cold", "flu", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/358/smpc"
+    }
+    else if ["beechams", "powders"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/7305/smpc"
+    }
+    else if ["benacort", "hayfever", "relief", "for", "adults", "64", "micrograms"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/12041/smpc"
+    }
+    else if ["benadryl", "allergy", "children’s", "1mg/ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1909/smpc"
+    }
+    else if ["benadryl", "one", "a", "day", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1710/smpc"
+    }
+    else if ["benadryl", "allergy", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1473/smpc"
+    }
+    else if ["benylin", "chesty", "cough", "cold", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3286/smpc"
+    }
+    else if ["benylin", "chesty", "coughs", "non-drowsy"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1521/smpc"
+    }
+    else if ["benylin", "children's", "dry", "cough", "sore", "throat", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2062/smpc"
+    }
+    else if ["benylin", "dry", "coughs", "non-drowsy", "blackcurrant", "flavour", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2062/smpc"
+    }
+    else if ["benylin", "cold", "flu", "day", "night", "max", "strength", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["benylin", "cold", "flu", "max", "strength", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["benylin", "dry", "tickly", "cough", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8146/smpc"
+    }
+    else if ["benylin", "infant’s", "cough", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3283/smpc"
+    }
+    else if ["benylin", "mucus", "cough", "cold", "all", "in", "one", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4724/smpc"
+    }
+    else if ["benylin", "mucus", "cough", "max", "honey", "lemon", "flavour"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9356/smpc"
+    }
+    else if ["benylin", "mucus", "cough", "max", "menthol", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8147/smpc"
+    }
+    else if ["benylin", "mucus", "cough"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6647/smpc"
+    }
+    else if ["bisalax", "bisacodyl", "enteric", "coated", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["bisodol", "indigestion", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9014/smpc"
+    }
+    else if ["blistex", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8942/smpc"
+    }
+    else if ["blistex", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6604/smpc"
+    }
+    else if ["brown", "burk", "allergy", "relief", "8mg", "capsules", "hard"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11991/smpc"
+    }
+    else if ["brown", "burk", "once-a-day", "hayfever", "allergy", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10942/smpc"
+    }
+    else if ["bonjela", "cool", "mint", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5614/smpc"
+    }
+    else if ["bonjela", "junior", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5176/smpc"
+    }
+    else if ["bonjela"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/624/smpc"
+    }
+    else if ["boots", "antiseptic", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1589/smpc"
+    }
+    else if ["boots", "antiseptic", "wound", "wash"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6734/smpc"
+    }
+    else if ["boots", "aqueous", "cream", "100g"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8583/smpc"
+    }
+    else if ["boots", "aqueous", "cream", "500g"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1583/smpc"
+    }
+    else if ["boots", "aspirin", "300", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1911/smpc"
+    }
+    else if ["boots", "antiviral", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8877/smpc"
+    }
+    else if ["boots", "athlete's", "foot", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/12002/smpc"
+    }
+    else if ["boots", "avert", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5825/smpc"
+    }
+    else if ["boots", "bite", "sting", "relief", "antihistamine", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8229/smpc"
+    }
+    else if ["boots", "bite", "sting", "relief", "hydrocortisone", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6458/smpc"
+    }
+    else if ["boots", "calamine", "glycerin", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1587/smpc"
+    }
+    else if ["boots", "calamine", "lotion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1580/smpc"
+    }
+    else if ["boots", "chesty", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1564/smpc"
+    }
+    else if ["boots", "mucus", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1564/smpc"
+    }
+    else if ["boots", "easy", "breathing", "pastilles"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/505/smpc"
+    }
+    else if ["boots", "antiseptic", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6219/smpc"
+    }
+    else if ["boots", "flu-max", "all-in-one", "chesty", "cough", "cold", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5661/smpc"
+    }
+    else if ["boots", "constipation", "relief", "suppositories", "glycerol"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["boots", "cold", "flu", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8282/smpc"
+    }
+    else if ["boots", "constipation", "relief", "5mg", "bisacodyl"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4079/smpc"
+    }
+    else if ["boots", "cough", "syrup", "3", "months", "plus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1552/smpc"
+    }
+    else if ["boots", "diarrhoea", "relief", "2", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2986/smpc"
+    }
+    else if ["boots", "dry", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1585/smpc"
+    }
+    else if ["boots", "tickly", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1585/smpc"
+    }
+    else if ["boots", "dual", "action", "athlete's", "foot", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6733/smpc"
+    }
+    else if ["boots", "gripe", "mixture", "1", "month", "plus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6741/smpc"
+    }
+    else if ["boots", "heartburn", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["boots", "haemorrhoid", "relief", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6730/smpc"
+    }
+    else if ["boots", "acid", "reflux", "20mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9154/smpc"
+    }
+    else if ["boots", "hayfever", "allergy", "relief", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2765/smpc"
+    }
+    else if ["boots", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["boots", "ibuprofen", "3", "months", "oral", "suspension", "strawberry"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4580/smpc"
+    }
+    else if ["boots", "ibuprofen", "200mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6729/smpc"
+    }
+    else if ["boots", "lip", "and", "cold", "sore", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5824/smpc"
+    }
+    else if ["boots", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["boots", "max", "strength", "ibuprofen", "10%", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/12620/smpc"
+    }
+    else if ["boots", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["boots", "max", "strength", "senna", "adult", "laxative", "15", "mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5103/smpc"
+    }
+    else if ["boots", "mouth", "ulcer", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6728/smpc"
+    }
+    else if ["nicassist", "2", "mg", "microtab"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6182/smpc"
+    }
+    else if ["nicassist", "10", "mg/ml", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6207/smpc"
+    }
+    else if ["nicassist", "1"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8534/smpc"
+    }
+    else if ["nicassist", "2"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8535/smpc"
+    }
+    else if ["boots", "pain", "relief", "heat", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2223/smpc"
+    }
+    else if ["boots", "paracetamol", "120mg/5ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6144/smpc"
+    }
+    else if ["boots", "paracetamol", "6", "years", "plus", "250mg/5ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3023/smpc"
+    }
+    else if ["boots", "rehydration", "treatment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5655/smpc"
+    }
+    else if ["boots", "tickly", "cough", "relief", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4681/smpc"
+    }
+    else if ["boots", "distilled", "witch", "hazel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6723/smpc"
+    }
+    else if ["boots", "haemorrhoid", "relief", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4814/smpc"
+    }
+    else if ["boots", "wind", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6772/smpc"
+    }
+    else if ["buscomint", "peppermint", "oil", "0.2ml", "gastro-resistant", "capsule"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11329/smpc"
+    }
+    else if ["buscopan", "ibs", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3884/smpc"
+    }
+    else if ["calamine", "lotion", "bp"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4822/smpc"
+    }
+    else if ["calcough", "children's", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2061/smpc"
+    }
+    else if ["calcough", "infant", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/475/smpc"
+    }
+    else if ["calpol", "infant", "sugar", "free", "colour", "free", "120", "mg/5", "ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5908/smpc"
+    }
+    else if ["calpol", "six", "plus", "fastmelts"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/255/smpc"
+    }
+    else if ["calpol", "six", "plus", "sugar", "free", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6588/smpc"
+    }
+    else if ["calpol", "sugar", "free", "infant", "suspension", "sachets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1187/smpc"
+    }
+    else if ["calpol", "infant", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/260/smpc"
+    }
+    else if ["calprofen", "100mg/5ml", "oral", "suspension", "ibuprofen"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/339/smpc"
+    }
+    else if ["canesten", "thrush", "combi", "soft", "gel", "pessary", "external", "cream", "500mg", "/", "2%", "w/w", "vaginal", "capsule",  "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8225/smpc"
+    }
+    else if ["canesten", "bifonazole", "once", "daily", "1%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4130/smpc"
+    }
+    else if ["canesten", "dual", "action", "1%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2826/smpc"
+    }
+    else if ["canesten", "thrush", "combi", "internal", "external", "creams", "10%", "w/w", "/", "2%", "w/w", "vaginal", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/134/smpc"
+    }
+    else if ["canesten", "thrush", "combi", "pessary", "external", "cream", "500mg", "/", "2%", "w/w", "pessary", " cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5532/smpc"
+    }
+    else if ["care", "ibuprofen", "5%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4923/smpc"
+    }
+    else if ["care", "agnus", "castus", "pms", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9039/smpc"
+    }
+    else if ["care", "antiseptic", "first", "aid", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4819/smpc"
+    }
+    else if ["care", "chlorhexidine", "digluconate", "0.2%", "w/v", "antiseptic", "mouthwash", "peppermint", "flavour"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4818/smpc"
+    }
+    else if ["care", "chlorhexidine", "digluconate", "0.2%", "w.v", "antiseptic", "mouthwash", "aniseed", "flavour"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3618/smpc"
+    }
+    else if ["care", "cold", "flu", "relief", "200mg/5mg", "film", "coated", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/747/smpc"
+    }
+    else if ["care", "echinacea", "cold", "flu", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9037/smpc"
+    }
+    else if ["care", "ibuprofen", "for", "children", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4903/smpc"
+    }
+    else if ["care", "infant", "paracetamol", "120mg/5ml", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10606/smpc"
+    }
+    else if ["care", "st", "john's", "wort", "low", "mood", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9038/smpc"
+    }
+    else if ["care", "tea", "tree", "oil", "100%"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8072/smpc"
+    }
+    else if ["care", "haemorrhoid", "relief", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4821/smpc"
+    }
+    else if ["careway", "cold", "sore", "5%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["careway", "allergy", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["simple", "linctus", "paediatric", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2810/smpc"
+    }
+    else if ["cetirizine", "hydrochloride", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3474/smpc"
+    }
+    else if ["cetomacrogol", "cream", "bp", "1988", "formula", "a"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4823/smpc"
+    }
+    else if ["cetraben", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3/smpc"
+    }
+    else if ["chloraprep", "2%", "w/v", "/", "70%", "v/v", "cutaneous", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6670/smpc"
+    }
+    else if ["clarityn", "allergy", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3506/smpc"
+    }
+    else if ["clove", "oil"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4817/smpc"
+    }
+    else if ["cocois"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9100/smpc"
+    }
+    else if ["colpermin", "ibs", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1076/smpc"
+    }
+    else if ["corsodyl", "0.2%", "mouthwash"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/529/smpc"
+    }
+    else if ["corsodyl", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6520/smpc"
+    }
+    else if ["covonia", "catarrh", "relief", "formula"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4829/smpc"
+    }
+    else if ["covonia", "chesty", "cough", "mixture", "mentholated"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4831/smpc"
+    }
+    else if ["covonia", "mucus", "cough", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4831/smpc"
+    }
+    else if ["covonia", "chesty", "cough", "sugar", "free", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6812/smpc"
+    }
+    else if ["covonia", "dry", "tickly", "cough", "linctus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4830/smpc"
+    }
+    else if ["covonia", "vapour", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4837/smpc"
+    }
+    else if ["crampex", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4866/smpc"
+    }
+    else if ["curanail", "5%", "w/v", "medicated", "nail", "lacquer"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9436/smpc"
+    }
+    else if ["cymex"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9011/smpc"
+    }
+    else if ["daktarin", "aktiv", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2193/smpc"
+    }
+    else if ["daktarin", "aktiv", "spray", "powder"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1318/smpc"
+    }
+    else if ["daktarin", "intensiv", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/488/smpc"
+    }
+    else if ["dandrazol", "anti-dandruff", "shampoo"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9660/smpc"
+    }
+    else if ["dentinox", "cradle", "cap", "treatment", "shampoo"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6605/smpc"
+    }
+    else if ["dentinox", "infant", "colic", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6612/smpc"
+    }
+    else if ["dermalo", "bath", "emollient"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3840/smpc"
+    }
+    else if ["dettol", "antiseptic", "wash"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5647/smpc"
+    }
+    else if ["dettol", "wash"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5647/smpc"
+    }
+    else if ["dettol", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5633/smpc"
+    }
+    else if ["dioralyte", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2775/smpc"
+    }
+    else if ["dioralyte", "citrus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2770/smpc"
+    }
+    else if ["dioralyte", "natural"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2774/smpc"
+    }
+    else if ["dioralyte", "relief", "raspberry"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3855/smpc"
+    }
+    else if ["diprobase", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3502/smpc"
+    }
+    else if ["disprin", "original"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/614/smpc"
+    }
+    else if ["disprin", "direct"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5636/smpc"
+    }
+    else if ["doublebase", "emollient", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/398/smpc"
+    }
+    else if ["dr.", "reddy's", "cetirizine", "hydrochloride", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2085/smpc"
+    }
+    else if ["dulcoease", "100", "mg", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/212/smpc"
+    }
+    else if ["dulcolax", "adult", "5", "mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/361/smpc"
+    }
+    else if ["dulcolax", "adult", "pico", "liquid", "5", "mg", "/", "5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11634/smpc"
+    }
+    else if ["dulcelax", "adult", "5", "mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/361/smpc"
+    }
+    else if ["dulcelax", "adult", "pico", "liquid", "5", "mg", "/", "5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11634/smpc"
+    }
+    else if ["e45", "itch", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/378/smpc"
+    }
+    else if ["e45", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6586/smpc"
+    }
+    else if ["eczmol", "1%", "w/w", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/509/smpc"
+    }
+    else if ["emulsifying", "ointment", "bp"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4571/smpc"
+    }
+    else if ["eno"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6481/smpc"
+    }
+    else if ["essential", "waitrose", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["essential", "waitrose", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["esomeprazole", "20", "mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10345/smpc"
+    }
+    else if ["epsom", "salts", "bp"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4841/smpc"
+    }
+    else if ["eucalyptus", "oil"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4843/smpc"
+    }
+    else if ["exorex", "lotion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10069/smpc"
+    }
+    else if ["eurax", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2255/smpc"
+    }
+    else if ["fenbid", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5674/smpc"
+    }
+    else if ["fenpaed", "ibuprofen", "100", "mg/5", "ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4573/smpc"
+    }
+    else if ["flarin", "joint", "muscular", "pain", "relief", "200", "mg", "soft", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11508/smpc"
+    }
+    else if ["flexigel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/12999/smpc"
+    }
+    else if ["freederm", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/304/smpc"
+    }
+    else if ["fuller’s", "earth", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4846/smpc"
+    }
+    else if ["fybogel", "hi-fibre", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/618/smpc"
+    }
+    else if ["fybogel", "hi-fibre", "orange"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/621/smpc"
+    }
+    else if ["fybogel", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6716/smpc"
+    }
+    else if ["fybogel", "orange"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1447/smpc"
+    }
+    else if ["fybogel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5652/smpc"
+    }
+    else if ["galpharm", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["galpharm", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["galpharm", "day", "night", "max", "strength", "cold", "flu", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["galpharm", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["galpharm", "heartburn", "indigestionrelief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["gavilast", "heartburn", "and", "indigestion", "75mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2497/smpc"
+    }
+    else if ["gaviscon", "advance", "aniseed", "flavour", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/681/smpc"
+    }
+    else if ["gaviscon", "advance", "mint", "chewable", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/73/smpc"
+    }
+    else if ["gaviscon", "advance", "peppermint", "flavour", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6715/smpc"
+    }
+    else if ["gaviscon", "double", "action", "aniseed"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/685/smpc"
+    }
+    else if ["gaviscon", "double", "action", "liquid", "sachets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3959/smpc"
+    }
+    else if ["gaviscon", "double", "action", "mint", "flavour", "chewable", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5329/smpc"
+    }
+    else if ["gaviscon", "double", "action", "mint", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5609/smpc"
+    }
+    else if ["gaviscon", "double", "action", "mixed", "berries", "flavour", "chewable", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9752/smpc"
+    }
+    else if ["gaviscon", "double", "action", "mixed", "berries", "flavour", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/12764/smpc"
+    }
+    else if ["gaviscon", "original", "aniseed", "relief", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/623/smpc"
+    }
+    else if ["gaviscon", "peppermint", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4856/smpc"
+    }
+    else if ["gaviscon", "strawberry", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5746/smpc"
+    }
+    else if ["gaviscon", "peppermint", "liquid", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/113/smpc"
+    }
+    else if ["germolene", "antiseptic", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1298/smpc"
+    }
+    else if ["germoloids", "hc", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1595/smpc"
+    }
+    else if ["germoloids", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1301/smpc"
+    }
+    else if ["germoloids", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1302/smpc"
+    }
+    else if ["glycerin", "suppositories", "bp", "1g", "infants"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4876/smpc"
+    }
+    else if ["glycerin", "suppositories", "bp", "2g", "children's", "size"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4857/smpc"
+    }
+    else if ["glycerin", "suppositories", "bp", "4g", "adult", "size"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4897/smpc"
+    }
+    else if ["glycerol", "1g", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3535/smpc"
+    }
+    else if ["glycerol", "2g", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3534/smpc"
+    }
+    else if ["glycerol", "4g", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3595/smpc"
+    }
+    else if ["grisol", "1", "%", "spray", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9668/smpc"
+    }
+    else if ["guardium", "acid", "reflux", "control", "20mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10345/smpc"
+    }
+    else if ["gygel", "contraceptive", "jelly"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5848/smpc"
+    }
+    else if ["happinose", "balm"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/297/smpc"
+    }
+    else if ["hedrin", "4%", "lotion", "dimeticonem"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4860/smpc"
+    }
+    else if ["healthpoint", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["healthessentials", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["healthessentials", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["hydrogen", "peroxide", "solution", "3%", "10", "vols"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4949/smpc"
+    }
+    else if ["hydrogen", "peroxide", "solution", "6%", "20", "vols"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4869/smpc"
+    }
+    else if ["hydrogen", "peroxide", "solution", "9%", "30", "vols"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4870/smpc"
+    }
+    else if ["ibuleve", "max", "strength", "pain", "relief", "10%", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5689/smpc"
+    }
+    else if ["ibuleve", "pain", "relief", "5%", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6196/smpc"
+    }
+    else if ["ibuleve", "speed", "relief", "5%", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/302/smpc"
+    }
+    else if ["imodium", "dual", "action", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/369/smpc"
+    }
+    else if ["imodium", "instants"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/367/smpc"
+    }
+    else if ["imodium", "original"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/558/smpc"
+    }
+    else if ["ispagel", "orange"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4404/smpc"
+    }
+    else if ["lamisil", "at", "1%", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6325/smpc"
+    }
+    else if ["lamisil", "at", "1%", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6324/smpc"
+    }
+    else if ["lamisil", "once"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/179/smpc"
+    }
+    else if ["lanacane", "creme"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5952/smpc"
+    }
+    else if ["lemsip", "cough", "for", "dry", "cough", "sore", "throat", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5643/smpc"
+    }
+    else if ["lemsip", "max", "honey", "ginger", "flavour", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3251/smpc"
+    }
+    else if ["lemsip", "cough", "for", "mucus", "cough", "catarrh"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/7255/smpc"
+    }
+    else if ["lemsip", "cough", "max", "for", "chesty", "cough", "cold", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3303/smpc"
+    }
+    else if ["lemsip", "cough", "chesty", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/616/smpc"
+    }
+    else if ["lemsip", "max", "all", "one", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4275/smpc"
+    }
+    else if ["lemsip", "max", "all", "day", "cold", "flu", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5624/smpc"
+    }
+    else if ["lemsip", "max", "all", "one", "breathe", "easy", "powder", "for", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5608/smpc"
+    }
+    else if ["lemsip", "max", "all", "one", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5610/smpc"
+    }
+    else if ["lemsip", "max", "all", "one", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2763/smpc"
+    }
+    else if ["lemsip", "max", "all", "one", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4485/smpc"
+    }
+    else if ["lemsip", "max", "all", "one", "wild", "berry", "hot", "orange"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5623/smpc"
+    }
+    else if ["lemsip", "max", "blackcurrant", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4787/smpc"
+    }
+    else if ["lemsip", "max", "day", "night", "cold", "flu", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5642/smpc"
+    }
+    else if ["lemsip", "max", "cold", "flu", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5618/smpc"
+    }
+    else if ["lemsip", "max", "cold", "flu", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5612/smpc"
+    }
+    else if ["lemsip", "max", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5617/smpc"
+    }
+    else if ["lemsip", "max", "lemon", "flavour", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5761/smpc"
+    }
+    else if ["lemsip", "max", "sinus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5619/smpc"
+    }
+    else if ["lemsip", "cold", "flu", "blackcurrant"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5613/smpc"
+    }
+    else if ["lemsip", "cold", "flu", "breathe", "easy"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4614/smpc"
+    }
+    else if ["lemsip", "cold", "flu", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/617/smpc"
+    }
+    else if ["loperamide", "2mg", "capsules", "hard"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/13500/smpc"
+    }
+    else if ["lorapaed", "allergy", "relief", "5", "mg/5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2519/smpc"
+    }
+    else if ["lypsyl", "cold", "sore", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6336/smpc"
+    }
+    else if ["lypsyl", "acyclovir", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["lloydspharmacy", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["lloydspharmacy", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["maalox", "175mg/200mg", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2716/smpc"
+    }
+    else if ["maalox", "plus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5550/smpc"
+    }
+    else if ["mackenzies", "smelling", "salts"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10348/smpc"
+    }
+    else if ["magnesium", "hydroxide", "mixture"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4908/smpc"
+    }
+    else if ["magnesium", "trisilicate", "mixture"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4880/smpc"
+    }
+    else if ["mandanol", "paracetamol", "500"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10471/smpc"
+    }
+    else if ["medijel", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6610/smpc"
+    }
+    else if ["menthol", "and", "eucalyptus", "inhalation", "1980"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4952/smpc"
+    }
+    else if ["metanium", "nappy", "rash", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4902/smpc"
+    }
+    else if ["mintec"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1011/smpc"
+    }
+    else if ["migraeeze", "feverfew", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9040/smpc"
+    }
+    else if ["murine", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["morrisons", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["morrisons", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["morrisons", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["morrisons", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["morrisons", "laxative", "tablets", "adult", "bisacodyl"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["mucogel", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/13356/smpc"
+    }
+    else if ["mycota", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4906/smpc"
+    }
+    else if ["mycota", "powder"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4918/smpc"
+    }
+    else if ["nasacort", "allergy", "relief", "for", "adults", "nasal", "spray", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6501/smpc"
+    }
+    else if ["natures", "aid", "herbal", "catarrh", "relief", "formula"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/7979/smpc"
+    }
+    else if ["natures", "aid", "tea", "tree", "oil"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8073/smpc"
+    }
+    else if ["neutrogena", "t/gel", "therapeutic", "shampoo"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6289/smpc"
+    }
+    else if ["nexium", "control", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3660/smpc"
+    }
+    else if ["nexium", "control", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/819/smpc"
+    }
+    else if ["nicorette", "15mg", "inhalator"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4707/smpc"
+    }
+    else if ["nicorette", "freshmint", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6205/smpc"
+    }
+    else if ["nicorette", "freshmint", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6206/smpc"
+    }
+    else if ["nicorette", "fruitfusion", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6208/smpc"
+    }
+    else if ["nicorette", "fruitfusion", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6209/smpc"
+    }
+    else if ["nicorette", "icy", "white", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6461/smpc"
+    }
+    else if ["nicorette", "icy", "white", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6460/smpc"
+    }
+    else if ["nicorette", "cools", "2mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4110/smpc"
+    }
+    else if ["nicorette", "cools", "4mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4114/smpc"
+    }
+    else if ["nicorette", "fruit", "2mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9438/smpc"
+    }
+    else if ["nicorette", "invisipatch", "10mg"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6437/smpc"
+    }
+    else if ["nicorette", "invisipatch", "15mg"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6436/smpc"
+    }
+    else if ["nicorette", "invisipatch", "25mg"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6435/smpc"
+    }
+    else if ["nicorette", "microtab", "2mg"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6182/smpc"
+    }
+    else if ["nicorette", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6207/smpc"
+    }
+    else if ["nicorette", "quickmist", "1mg/spray", "mouthspray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5956/smpc"
+    }
+    else if ["nicorette", "2mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1089/smpc"
+    }
+    else if ["nicorette", "4mg", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1323/smpc"
+    }
+    else if ["nicassist", "translucent", "10mg", "patch"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6437/smpc"
+    }
+    else if ["nicassist", "translucent", "15mg", "patch"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6436/smpc"
+    }
+    else if ["nicassist", "translucent", "25mg", "patch"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6435/smpc"
+    }
+    else if ["nicotinell", "fruit", "2mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6253/smpc"
+    }
+    else if ["nicotinell", "fruit", "4mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6257/smpc"
+    }
+    else if ["nicotinell", "mint", "1mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2254/smpc"
+    }
+    else if ["nicotinell", "mint", "2mg", "lozenge"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1190/smpc"
+    }
+    else if ["nicotinell", "mint", "2mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6259/smpc"
+    }
+    else if ["nicotinell", "mint", "4mg", "medicated", "chewing", "gum"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6254/smpc"
+    }
+    else if ["nicotinell", "tts", "10"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/390/smpc"
+    }
+    else if ["nicotinell", "tts", "20"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/389/smpc"
+    }
+    else if ["nicotinell", "tts", "30"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/388/smpc"
+    }
+    else if ["nizoral", "anti-dandruff", "shampoo"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6456/smpc"
+    }
+    else if ["normacol", "plus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1027/smpc"
+    }
+    else if ["normacol"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1026/smpc"
+    }
+    else if ["nurofen", "200mg", "liquid", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4874/smpc"
+    }
+    else if ["nurofen", "day", "night", "cold", "flu", "200mg/5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3115/smpc"
+    }
+    else if ["nurofen", "cold", "flu", "relief", "200mg/5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3116/smpc"
+    }
+    else if ["nurofen", "express", "period", "pain", "200mg", "soft", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4964/smpc"
+    }
+    else if ["nurofen", "express", "200mg", "liquid", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5635/smpc"
+    }
+    else if ["nurofen", "express", "256mg", "caplets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5663/smpc"
+    }
+    else if ["nurofen", "express", "256mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5662/smpc"
+    }
+    else if ["nurofen", "express", "342mg", "caplets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5663/smpc"
+    }
+    else if ["nurofen", "for", "children", "orange"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8139/smpc"
+    }
+    else if ["nurofen", "for", "children", "strawberry"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8137/smpc"
+    }
+    else if ["nurofen", "joint", "back", "pain", "relief", "max", "strength", "10%", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2969/smpc"
+    }
+    else if ["nurofen", "joint", "muscular", "pain", "relief", "200mg", "medicated", "plaster"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9321/smpc"
+    }
+    else if ["nurofen", "meltlets", "200mg", "orodispersible", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10261/smpc"
+    }
+    else if ["nurofen", "meltlets", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5630/smpc"
+    }
+    else if ["nurofen", "migraine", "pain"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5615/smpc"
+    }
+    else if ["nurofen", "pain", "relief", "200mg", "soft", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5089/smpc"
+    }
+    else if ["nurofen", "pain", "relief", "256mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5092/smpc"
+    }
+    else if ["nurofen", "sinus", "blocked", "nose", "200mg/5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6908/smpc"
+    }
+    else if ["nurofen", "tension", "headache"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8141/smpc"
+    }
+    else if ["nurofen", "200mg", "caplets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5937/smpc"
+    }
+    else if ["nurofen", "200mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5936/smpc"
+    }
+    else if ["nuromol", "dual", "action", "pain", "relief", "200mg/500mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4967/smpc"
+    }
+    else if ["numark+", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["numark+", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["numark+", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["numark+", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["numark+", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["numark+", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["odour", "free", "lloyds", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4910/smpc"
+    }
+    else if ["odour", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8150/smpc"
+    }
+    else if ["oilatum", "emollient"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5454/smpc"
+    }
+    else if ["oilatum", "junior", "bath", "additive"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5455/smpc"
+    }
+    else if ["oilatum", "plus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5457/smpc"
+    }
+    else if ["oilatum", "shower", "gel", "fragrance", "free"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/489/smpc"
+    }
+    else if ["orajel", "dental", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1230/smpc"
+    }
+    else if ["orajel", "mouth", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1229/smpc"
+    }
+    else if ["optrex", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["oraldene"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5459/smpc"
+    }
+    else if ["original", "andrews", "salts"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6475/smpc"
+    }
+    else if ["otrivine", "adult", "nasal", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1412/smpc"
+    }
+    else if ["otrivine", "adult", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6155/smpc"
+    }
+    else if ["otrivine", "allergy", "relief", "0.1%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5984/smpc"
+    }
+    else if ["otrivine", "blocked", "nose", "relief", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3008/smpc"
+    }
+    else if ["otrivine", "congestion", "relief", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3314/smpc"
+    }
+    else if ["otrivine", "sinusitis", "relief", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6334/smpc"
+    }
+    else if ["opticrom", "hayfever", "2%w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["panadol", "actiFast", "soluble", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6492/smpc"
+    }
+    else if ["panadol", "actiFast", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6482/smpc"
+    }
+    else if ["panadol", "extra", "advance", "500mg/65mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4504/smpc"
+    }
+    else if ["panadol", "advance", "500mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6512/smpc"
+    }
+    else if ["panadol", "advance", "500", "mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6512/smpc"
+    }
+    else if ["panadol", "extra", "soluble", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6473/smpc"
+    }
+    else if ["panadol", "original", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6474/smpc"
+    }
+    else if ["panadol", "period", "pain"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5340/smpc"
+    }
+    else if ["paracetamol", "500mg", "effervescent", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10240/smpc"
+    }
+    else if ["peptac", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["peppermint", "water", "bp", "1973"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/7326/smpc"
+    }
+    else if ["phorpain", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5703/smpc"
+    }
+    else if ["phosphate", "sandoz"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/958/smpc"
+    }
+    else if ["pollenase", "hayfever", "relief", "2%", "w/v", "eye", "drops"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6951/smpc"
+    }
+    else if ["pinewood", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["pinewood's", "bites", "and", "stings", "relief", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4565/smpc"
+    }
+    else if ["pirinase", "hayfever", "relief", "for", "adults", "0.05%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5116/smpc"
+    }
+    else if ["piriteze", "allergy", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4132/smpc"
+    }
+    else if ["piriteze", "allergy", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/341/smpc"
+    }
+    else if ["pollenshield", "hayfever", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/381/smpc"
+    }
+    else if ["polytar", "scalp", "shampoo"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2161/smpc"
+    }
+    else if ["pyrocalm", "control", "20mg", "gastro-resistant", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9154/smpc"
+    }
+    else if ["ranitidine", "75", "mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2497/smpc"
+    }
+    else if ["radianb", "anti-inflammatory", "ibuprofen", "5%", "w/w", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4923/smpc"
+    }
+    else if ["radian", "massage", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4942/smpc"
+    }
+    else if ["regaine", "for", "men", "extra", "strength", "scalp", "foam", "5%", "w/w", "cutaneous", "foam"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5781/smpc"
+    }
+    else if ["regaine", "for", "men", "extra", "strength", "scalp", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5765/smpc"
+    }
+    else if ["regaine", "for", "women", "once", "a", "day", "scalp", "foam", "5%", "w/w", "cutaneous", "foam"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5082/smpc"
+    }
+    else if ["regaine", "for", "women", "regular", "strength"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/102/smpc"
+    }
+    else if ["remegel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1308/smpc"
+    }
+    else if ["robitussin", "chesty", "cough", "medicine"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11926/smpc"
+    }
+    else if ["savlon", "antiseptic", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6330/smpc"
+    }
+    else if ["savlon", "bites", "stings", "pain", "relief", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6332/smpc"
+    }
+    else if ["savlon", "dual", "action", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/7135/smpc"
+    }
+    else if ["scholl", "advance", "athlete's", "foot", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6227/smpc"
+    }
+    else if ["scholl", "athlete's", "foot", "spray", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3417/smpc"
+    }
+    else if ["scholl", "seal", "and", "heal", "verruca", "removal", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3099/smpc"
+    }
+    else if ["scholl", "verruca", "removal", "system", "40%", "w/w", "medicated", "plasters"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3252/smpc"
+    }
+    else if ["schollmed", "once", "weekly", "fungal", "nail", "treatment", "5%", "w/v", "medicated", "nail", "lacquer"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/745/smpc"
+    }
+    else if ["senease", "7.5mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9458/smpc"
+    }
+    else if ["senokot", "7.5", "mg", "tablets", "adult"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11140/smpc"
+    }
+    else if ["senokot", "max", "strength", "tablets", "adult"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/622/smpc"
+    }
+    else if ["setlers", "antacid", "chewable", "tablets", "peppermint", "flavour"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5282/smpc"
+    }
+    else if ["setlers", "antacid", "chewable", "tablets", "spearmint", "flavour"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5281/smpc"
+    }
+    else if ["simple", "linctus", "paediatric", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4508/smpc"
+    }
+    else if ["simple", "linctus", "paediatric"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4935/smpc"
+    }
+    else if ["simple", "linctus", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4510/smpc"
+    }
+    else if ["simple", "linctus"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4925/smpc"
+    }
+    else if ["six", "plus", "parapaed", "250", "mg/5", "ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4511/smpc"
+    }
+    else if ["six", "plus", "parapaed", "250mg/5ml", "oral", "suspension"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4511/smpc"
+    }
+    else if ["slow", "sodium"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/960/smpc"
+    }
+    else if ["sodium", "bicarbonate"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4936/smpc"
+    }
+    else if ["strepsils", "children", "6+", "lozenges"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4223/smpc"
+    }
+    else if ["strepsils", "triple", "action", "honey", "lemon", "flavour", "2.4mg", "lozenges"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2701/smpc"
+    }
+    else if ["strepsils", "extra", "triple", "action", "blackcurrant", "lozenges"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5601/smpc"
+    }
+    else if ["strepsils", "extra", "triple", "action", "cherry", "lozenges"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/627/smpc"
+    }
+    else if ["strepsils", "honey", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5606/smpc"
+    }
+    else if ["strepsils", "honey:", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5606/smpc"
+    }
+    else if ["strepsils", "honeys", "lemon"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5606/smpc"
+    }
+    else if ["strepsils", "menthol", "1.2mg/0.6mg", "lozenges"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2700/smpc"
+    }
+    else if ["strepsils", "orange", "vitamin", "c", "100mg"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/625/smpc"
+    }
+    else if ["strepsils", "sore", "throat", "blocked", "nose"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5605/smpc"
+    }
+    else if ["strepsils", "sore", "throat", "cough"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8142/smpc"
+    }
+    else if ["strepsils", "strawberry", "sugar", "free", "lozenges"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5637/smpc"
+    }
+    else if ["strepsils"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5638/smpc"
+    }
+    else if ["sudafed", "blocked", "nose", "sinus", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/13086/smpc"
+    }
+    else if ["sudafed", "blocked", "nose", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1722/smpc"
+    }
+    else if ["sudafed", "congestion", "headache", "relief", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3287/smpc"
+    }
+    else if ["sudafed", "congestion", "headache", "relief", "max", "strength"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3288/smpc"
+    }
+    else if ["sudafed", "congestion", "relief", "0.1%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5096/smpc"
+    }
+    else if ["sudafed", "mucus", "relief", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5233/smpc"
+    }
+    else if ["sudafed", "mucus", "relief", "triple", "action", "cold", "flu", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4747/smpc"
+    }
+    else if ["sudafed", "sinus", "max", "strength", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3285/smpc"
+    }
+    else if ["sudafed", "sinus", "pain", "relief", "200", "mg/6.1", "mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8434/smpc"
+    }
+    else if ["sudafed", "sinus-ease", "0.1%", "nasal", "spray"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9228/smpc"
+    }
+    else if ["sudafed", "mucus", "relief", "triple", "action", "cold", "flu", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3286/smpc"
+    }
+    else if ["sudocrem", "antiseptic", "healing", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8860/smpc"
+    }
+    else if ["surgical", "spirit"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4962/smpc"
+    }
+    else if ["superdrug", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9273/smpc"
+    }
+    else if ["superdrug", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["superdrug", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["superdrug", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["superdrug", "constipation", "relief", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["superdrug", "family", "hayfever", "allergy", "relief", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2765/smpc"
+    }
+    else if ["sainsbury’s", "haemorrhoid", "relief", "suppositories"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4814/smpc"
+    }
+    else if ["sainsbury’s", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["sainsbury’s", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["sainsbury’s", "care", "antiseptic", "first", "aid", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4819/smpc"
+    }
+    else if ["sainsbury's", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["sainsbury's", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["sainsbury's", "family", "hayfever", "allergy", "relief", "liquid"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2765/smpc"
+    }
+    else if ["tesco", "max", "strength", "cold", "flu", "day", "night", "relief", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["tesco", "max", "strength", "cold", "flu", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/231/smpc"
+    }
+    else if ["tesco", "allergy", "hayfever", "relief", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3474/smpc"
+    }
+    else if ["tesco", "heartburn", "indigestion"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4525/smpc"
+    }
+    else if ["tesco", "constipation", "relief", "suppositories", "4g"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4897/smpc"
+    }
+    else if ["tesco", "constipation", "relief"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2086/smpc"
+    }
+    else if ["tesco", "aspirin", "300mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/11864/smpc"
+    }
+    else if ["treathay", "120", "mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/12245/smpc"
+    }
+    else if ["tixylix", "blackcurrant", "flavour", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10949/smpc"
+    }
+    else if ["tixylix", "toddler", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6642/smpc"
+    }
+    else if ["tixylix", "baby", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6169/smpc"
+    }
+    else if ["tums", "assorted", "fruit", "antacid", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6511/smpc"
+    }
+    else if ["unguentum", "m", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/6396/smpc"
+    }
+    else if ["ucalm", "st", "john's", "wort", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9038/smpc"
+    }
+    else if ["value", "health", "glycerin"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/1590/smpc"
+    }
+    else if ["vigranon-b", "syrup"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2304/smpc"
+    }
+    else if ["virasorb", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4963/smpc"
+    }
+    else if ["vitamin", "b", "compound", "strong", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/5865/smpc"
+    }
+    else if ["vitamin", "e", "suspension", "100", "mg", "in", "1", "ml"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3734/smpc"
+    }
+    else if ["voke", "0.45mg", "inhaler"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/10622/smpc"
+    }
+    else if ["voltarol", "back", "muscle", "pain", "relief", "1.16%", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/8773/smpc"
+    }
+    else if ["voltarol", "joint", "back", "pain", "relief", "2.32%", "gel"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9335/smpc"
+    }
+    else if ["WindSetlers"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4929/smpc"
+    }
+    else if ["wilko", "max", "strength", "cold", "flu", "day", "night", "capsules"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3620/smpc"
+    }
+    else if ["wockhardt", "allergy", "hayfever", "relief", "10mg", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/9102/smpc"
+    }
+    else if ["woodwards", "gripe", "water", "alcohol", "free", "sugar", "free"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/3611/smpc"
+    }
+    else if ["zinc", "castor", "oil", "ointment"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/4932/smpc"
+    }
+    else if ["ziralton", "allergy", "relief", "for", "children", "5", "mg/5", "ml", "oral", "solution"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/2518/smpc"
+    }
+    else if ["zirtek", "allergy", "relief", "10", "mg", "film-coated", "tablets"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/175/smpc"
+    }
+    else if ["zovirax", "cold", "sore", "cream"].allSatisfy(someArray.contains) {
+        return "https://www.medicines.org.uk/emc/product/27/smpc"
+    }
+    else {
+        return "https://www.medicines.org.uk/emc/product/-1/smpc"
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
+}
+
